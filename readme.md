@@ -5,9 +5,9 @@ Micro-framework for Golang web servers. Condenses many common request handler ta
 Has modules for smart page rendering, contextual handler tasks, and database modeling.
 
 Each module is completely independent from others and can be used in isolation. See their respective docs:
-* [render](render)
-* [context](context)
-* [dsadapter](dsadapter)
+* [`render` readme](render)
+* [`context` readme](context)
+* [`dsadapter` readme](dsadapter)
 
 `gotools` are orthogonal to middleware frameworks like [Martini](https://github.com/go-martini/martini) or [Gorilla](http://www.gorillatoolkit.org), and should be combined with them. The context component includes an [example code snippet](context/middleware.go) how to plug it into Martini as middleware.
 

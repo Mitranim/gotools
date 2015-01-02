@@ -11,6 +11,52 @@ Database adapter for Golang web applications using the GAE Datastore.
 * Record lifecycle with validation and permission checks
 * DB populate helpers
 
+## Contents
+
+* [Description](#description)
+* [Features](#features)
+* [Installation](#installation)
+* [Terminology](#terminology)
+* [API Reference](#api-reference)
+  * [Record Type](#record-type)
+    * [Lifecycle Methods Example](#lifecycle-methods-example)
+    * [CRUD Methods Example](#crud-methods-example)
+    * [Utility Methods Example](#utility-methods-example)
+    * [Key](#key)
+    * [Save](#save)
+    * [Read](#read)
+    * [Delete](#delete)
+    * [FindOne](#findone)
+  * [Collection Operations](#collection-operations)
+    * [Find](#find)
+    * [FindAll](#findall)
+    * [FindByQuery](#findbyquery)
+  * [Permissions](#permissions)
+    * [Operation Codes](#operation-codes)
+    * [CodeCreate](#codecreate)
+    * [CodeRead](#coderead)
+    * [CodeUpdate](#codeupdate)
+    * [CodeDelete](#codedelete)
+  * [Resources](#resources)
+    * [Resources](#resources)
+    * [NewRecordByResource](#newrecordbyresource)
+    * [NewCollectionByResource](#newcollectionbyresource)
+    * [SliceOf](#sliceof)
+    * [NewRecordFromCollection](#newrecordfromcollection)
+  * [Populate](#populate)
+    * [RegisterForPopulate](#registerforpopulate)
+    * [Populate](#populate)
+  * [Setup](#setup)
+    * [Config type](#config-type)
+    * [Setup](#setup)
+  * [Utilities](#utilities)
+    * [Compute](#compute)
+    * [ErrorCode](#errorcode)
+    * [RndId](#rndid)
+    * [Log](#log)
+    * [ToRecords](#torecords)
+  * [Errors](#errors)
+
 ## Installation
 
 ```shell
@@ -160,13 +206,13 @@ func (this *Engine) SetId(id string) { this.Id = id }
 
 They're called in CRUD operations.
 
-#### Key(\*http.Request, Record) \*datastore.Key
+#### `Key(\*http.Request, Record) \*datastore.Key`
 
 Creates a Datastore key for the given Record. `Record#Kind()` is called to provide the Datastore kind, and `Record#GetId()` is called to provide the string id for the key. The numeric id associated with a key is always 0. The parent key is always nil.
 
 Each record is identified uniquely in the Datastore by its kind and id within kind.
 
-#### Save(*http.Request, Record) error
+#### `Save(*http.Request, Record) error`
 
 Generic create/update method for Record types. Saves a record to the Datastore by its kind and id. Example usage:
 
@@ -185,7 +231,7 @@ err := engine.Save(req)
 
 Be aware that you can't patch a Datastore entity by saving a struct with only _some_ of its fields under the same key. When a struct is created, omitted fields are initialised to zero values. If saved under the same key as an existing entity, it will overwrite it, deleting the existing fields. When updating an entity, you must first read it from the Datastore, update its fields, then save it.
 
-#### Read(\*http.Request, Record) error
+#### `Read(\*http.Request, Record) error`
 
 Generic read method for Record types. Reads a record from the Datastore by its kind and id. Example usage:
 
@@ -198,7 +244,7 @@ err := engine.Read(req)
 // engine -> {Id: "3720274029858504238", Name: "Zugelgeheiner"}
 ```
 
-#### Delete(\*http.Request, Record) error
+#### `Delete(\*http.Request, Record) error`
 
 Generic delete method for Record types. Deletes a record from the Datastore by its kind and id. Example usage:
 
@@ -209,7 +255,7 @@ engine := &Engine{Id: "3720274029858504238"}
 err := engine.Delete(req)
 ```
 
-#### FindOne(\*http.Request, Record, map[string]string) error
+#### `FindOne(\*http.Request, Record, map[string]string) error`
 
 Attempts to find one record of the given type by the given parameters and write it to the destination record passed in the function call. The passed record must be a pointer. This is essentially a convenience alias for `FindAll` that writes the result to a record instead of a collection.
 
@@ -225,7 +271,7 @@ err := FindOne(req, engine, map[string]string{"Name": "Zugelgeheiner"})
 
 ### Collection Operations
 
-#### Find(\*http.Request, interface{}, map[string]string, int) error
+#### `Find(\*http.Request, interface{}, map[string]string, int) error`
 
 Parameters:
 
@@ -246,11 +292,11 @@ err := Find(req, engines, nil, 2)
 // engines -> &[]*Engine{(*Engine)(0xc2103fa500), (*Engine)(0xc2103fa5a0)}
 ```
 
-#### FindAll(\*http.Request, interface{}, map[string]string) error
+#### `FindAll(\*http.Request, interface{}, map[string]string) error`
 
 Alias of `Find` with 0 limit.
 
-#### FindByQuery(\*http.Request, interface{})
+#### `FindByQuery(\*http.Request, interface{})`
 
 Alias of `Find` with 0 limit, where `params` are automatically taken from the `req.URL.Query`.
 
@@ -292,19 +338,19 @@ const (
 
 The codes are [untyped](https://golang.org/ref/spec#Constants) numeric constants.
 
-#### CodeCreate
+#### `CodeCreate`
 
 Passed by `Record#Save()` if the record is new (`GetId() == ""`).
 
-#### CodeRead
+#### `CodeRead`
 
 Passed by collection `FindX` functions and by `Record#Read()`.
 
-#### CodeUpdate
+#### `CodeUpdate`
 
 Passed by `Record#Save()` if the record is not new (`GetId() != ""`).
 
-#### CodeDelete
+#### `CodeDelete`
 
 Passed by `Record#Delete()`.
 
@@ -325,7 +371,7 @@ type Quasar struct {
 (*Quasar)(nil)
 ```
 
-#### ResourceMap map[string]Record
+#### `Resources map[string]Record`
 
 Package-wide map of resource strings to record types, where types are represented with nil pointers to values. It's used internally by other resource methods. Register your resources by assigning them to this map. Example:
 
@@ -333,7 +379,7 @@ Package-wide map of resource strings to record types, where types are represente
 Resources["engines"] = (*Engine)(nil)
 ```
 
-#### NewRecordByResource(string) Record
+#### `NewRecordByResource(string) Record`
 
 Returns a pointer to a newly allocated zero value of the concrete type associated with the resource.
 
@@ -358,7 +404,7 @@ _, ok := engine.(*Quasar)
 // ok -> false
 ```
 
-#### NewCollectionByResource(string) interface{}
+#### `NewCollectionByResource(string) interface{}`
 
 Similar to `NewRecordByResource`, but instead of creating a record of the concrete resource type, it creates an empty slice of that type. Returns a pointer to the slice.
 
@@ -379,11 +425,11 @@ engines := NewCollectionByResource("engines")
 engs, ok := engines.(*[]*Engine)
 ```
 
-#### SliceOf(interface{}) interface{}
+#### `SliceOf(interface{}) interface{}`
 
 Allocates an empty non-nil slice of the given value's concrete type and returns a pointer to it masquerading as `interface{}`. This is used internally in `NewCollectionByResource`.
 
-#### NewRecordFromCollection(interface{}) (Record, error)
+#### `NewRecordFromCollection(interface{}) (Record, error)`
 
 Takes a pointer to a collection, allocates a new empty Record of the same concrete type, and returns a pointer to it. This is used internally in collection `FindX` functions to get a record to query its `Kind()` and `Can()` methods.
 
@@ -391,7 +437,7 @@ Takes a pointer to a collection, allocates a new empty Record of the same concre
 
 `dsadapter` comes with a primitive populate routine to help populate the database with data mockups.
 
-#### RegisterForPopulate(interface{})
+#### `RegisterForPopulate(interface{})`
 
 Takes a collection, converts it to the `[]Record` type, and registers a function that repopulates this Datastore kind with the given collection when `Populate()` is called. Any existing records of this kind are deleted before saving new ones. If an error occurs at any stage, this particular repopulate func is aborted.
 
@@ -405,7 +451,7 @@ RegisterForPopulate(engines)
 
 Only one populate per kind can be registered; attempts to register more than one collection of the same kind are silently ignored.
 
-#### Populate(*http.Request)
+#### `Populate(*http.Request)`
 
 Calls each populate function registered with RegisterForPopulate.
 
@@ -428,17 +474,17 @@ type Config struct {
 }
 ```
 
-#### Setup(Config) error
+#### `Setup(Config) error`
 
 Saves the passed config into a package-wide global. The options take effect immediately.
 
 ### Utilities
 
-#### Compute(interface{})
+#### `Compute(interface{})`
 
 Takes any value and calls its `Compute()` method, if available. If the value is a slice, loops over it and calls the `Compute()` method on each element, if possible. This is called automatically after reading a record or collection from the Datastore to recalculate computed properties.
 
-#### ErrorCode(error) int
+#### `ErrorCode(error) int`
 
 Reads the error message and returns the number from its beginning, if it falls in the http error code range: `400 <= x <= 599`. If the error doesn't begin with a number or it falls outside the boundary, the function returns `500`. If the error is nil, the function returns `200`.
 
@@ -455,15 +501,15 @@ ErrorCode(unknownErr) // -> 500
 
 When using functions and methods backed by `dsadapter` in your request handlers, you should examine them with `ErrorCode()` and set the appropriate http status code in your response.
 
-#### RndId() string
+#### `RndId() string`
 
 Generates a random string id. This is used by default to make random ids for new records when saving them. You can override it by passing a custom `RndId` value in a `Setup()` call.
 
-#### Log(...interface{})
+#### `Log(...interface{})`
 
 A simple logging function. Alias for `println` that automatically does `"%v"` on each value. Pass it into a `Setup()` call to use the default logger (logging is disabled by default).
 
-#### ToRecords(interface{}) []Record
+#### `ToRecords(interface{}) []Record`
 
 Takes a slice of any type and converts it to a slice of records. If the value is not a slice, this returns nil. Non-Record values are ignored. If the original slice didn't contain any Records, the result will be zero length. This is used internally in `RegisterForPopulate()` to convert the given collection to a slice of records.
 
@@ -482,7 +528,7 @@ engs := ToRecords(engi)
 
 ### Errors
 
-Most errors generated by `dsadapter` begin with an http status code corresponding to the error type. When handling a `dsadapter` error, you should examine it with `ErrorCode()`.
+Most errors generated by `dsadapter` begin with an http status code corresponding to the error type. When handling a `dsadapter` error, you should examine it with `ErrorCode()` and set the resulting status code in your http response writer.
 
 Example:
 
