@@ -19,7 +19,7 @@ type Config struct {
 	// (not recommended), pass a function that returns an empty string.
 	RndId func() string
 	// Logger function to call on populate and critical errors. If omitted, no
-	// logging is done. Pass dsadapter.Debug to use the default.
+	// logging is done. Pass dsadapter.Debug to use the default (recommended).
 	Debugger func(*http.Request, ...interface{})
 }
 

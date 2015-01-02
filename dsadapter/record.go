@@ -98,7 +98,7 @@ func Save(req *http.Request, record Record) error {
 
 	// Validate before saving.
 	if len(record.Validate()) != 0 {
-		return err400
+		return err422
 	}
 
 	// If the id is missing, set a random id.

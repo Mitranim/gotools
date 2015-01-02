@@ -13,10 +13,9 @@ import (
 
 // Error constants.
 const (
-	err400 = utils.Error("400 bad request")
 	err403 = utils.Error("403 insufficient permissions")
 	err404 = utils.Error("404 not found")
-	err500 = utils.Error("500 internal server error")
+	err422 = utils.Error("422 unprocessable entry")
 )
 
 /********************************* Utilities *********************************/
