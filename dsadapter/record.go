@@ -15,18 +15,18 @@ import (
 	"github.com/Mitranim/gotools/utils"
 )
 
-/****************************** Query Functions ******************************/
+/******************************* Query Methods *******************************/
 
 // Takes a pointer to a record and tries to find one record of the matching
 // type, filtered by the given params. If a record is successfully found, it's
 // written to the destination, which must be a pointer. If not, an error if
 // returned.
-func FindOne(req *http.Request, destination Record, params map[string]string) error {
+func (this *StateInstance) FindOne(req *http.Request, destination Record, params map[string]string) error {
 	// Make a matching collection.
-	collection := SliceOf(destination)
+	collection := this.SliceOf(destination)
 
 	// Try to find one of that type.
-	err := Find(req, collection, params, 1)
+	err := this.Find(req, collection, params, 1)
 	if err != nil {
 		return err
 	}
@@ -56,16 +56,16 @@ func FindOne(req *http.Request, destination Record, params map[string]string) er
 	return nil
 }
 
-/****************************** Method Adapters ******************************/
+/************************** Record Method Adapters ***************************/
 
 // Returns a datastore key for the given record.
-func Key(req *http.Request, record Record) *datastore.Key {
+func (this *StateInstance) Key(req *http.Request, record Record) *datastore.Key {
 	gc := appengine.NewContext(req)
 	return datastore.NewKey(gc, record.Kind(), record.GetId(), 0, nil)
 }
 
 // Reads the given record from the Datastore.
-func Read(req *http.Request, record Record) error {
+func (this *StateInstance) Read(req *http.Request, record Record) error {
 	// Check for read permission.
 	if !record.Can(req, CodeRead) {
 		return err403
@@ -73,10 +73,10 @@ func Read(req *http.Request, record Record) error {
 
 	// Read from the Datastore.
 	gc := appengine.NewContext(req)
-	err := datastore.Get(gc, Key(req, record), record)
+	err := datastore.Get(gc, this.Key(req, record), record)
 
 	// Compute properties.
-	Compute(record)
+	this.Compute(record)
 
 	// If the record is not found, return a 404 error, otherwise nil.
 	if err != nil {
@@ -86,7 +86,7 @@ func Read(req *http.Request, record Record) error {
 }
 
 // Saves the given record to the Datastore.
-func Save(req *http.Request, record Record) error {
+func (this *StateInstance) Save(req *http.Request, record Record) error {
 	// If the record is new, check the `create` permission.
 	if record.GetId() == "" && !record.Can(req, CodeCreate) {
 		return err403
@@ -103,17 +103,17 @@ func Save(req *http.Request, record Record) error {
 
 	// If the id is missing, set a random id.
 	if record.GetId() == "" {
-		record.SetId(rndId())
+		record.SetId(this.RndId())
 	}
 
 	// Save to the Datastore.
 	gc := appengine.NewContext(req)
-	_, err := datastore.Put(gc, Key(req, record), record)
+	_, err := datastore.Put(gc, this.Key(req, record), record)
 	return err
 }
 
 // Deletes the given record from the Datastore.
-func Delete(req *http.Request, record Record) error {
+func (this *StateInstance) Delete(req *http.Request, record Record) error {
 	// Check for delete permission.
 	if !record.Can(req, CodeDelete) {
 		return err403
@@ -121,7 +121,7 @@ func Delete(req *http.Request, record Record) error {
 
 	// Delete from the Datastore.
 	gc := appengine.NewContext(req)
-	err := datastore.Delete(gc, Key(req, record))
+	err := datastore.Delete(gc, this.Key(req, record))
 
 	// If deletion fails, assume the record didn't exist and return 404.
 	if err != nil {

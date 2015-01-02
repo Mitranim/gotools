@@ -9,14 +9,30 @@ import (
 	"github.com/Mitranim/gotools/utils"
 )
 
+/********************************** Config ***********************************/
+
+// A Config must be passed into each NewContext call. It becomes associated with
+// the new context. It lets the user define how the context renders pages.
+// context.
+type Config struct {
+	// Rendering function to use for rendering pages by paths. If omitted, zero
+	// bytes are written on each Render call.
+	Render func(string, map[string]interface{}) ([]byte, error)
+
+	// Function to convert http error codes into template paths. If omitted, the
+	// default CodePath function is used for straight int-to-string conversion.
+	CodePath func(int) string
+}
+
 /********************************* Utilities *********************************/
 
 // Creates a new context from the given http objects.
-func NewContext(rw http.ResponseWriter, req *http.Request) Context {
+func NewContext(rw http.ResponseWriter, req *http.Request, config Config) Context {
 	return &ContextInstance{
-		data: map[string]interface{}{},
-		rw:   rw,
-		req:  req,
+		data:   map[string]interface{}{},
+		rw:     rw,
+		req:    req,
+		config: config,
 	}
 }
 

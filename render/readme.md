@@ -1,8 +1,14 @@
-### ToDo
+# Work In Progress
 
-Docs.
+-------------------------------------------------------------------------------
 
-### Type gotchas
+## Description
+## Features
+## Contents
+## Installation
+## API Reference
+
+## Type gotchas
 
 The type used for data is `map[string]interface{}`. With a map like this, you can assign any values, and can safely reference them in templates, both by uppercase and lowercase keys.
 

@@ -1,14 +1,19 @@
 package render
 
-// Public render functions.
+// Public render methods.
 
 import (
+	// Standard
 	"html/template"
 	"strings"
+	// Third party
+	"github.com/Mitranim/gotools/utils"
 )
 
+/********************************** Methods **********************************/
+
 /**
- * Shorthand rendering function. Renders the page at the given path,
+ * Shorthand rendering method. Renders the page at the given path,
  * automatically falling back to error pages corresponding to the kinds of
  * errors that may occur (404, 500, possibly others). Returns the rendered
  * bytes and the last error that occurred in the process.
@@ -20,15 +25,13 @@ import (
  * is not to signal a complete failure, but to carry the information about the
  * character of the problem (if any) that occurred in the process.
  *
- * Also see the RenderError comment.
+ * Also see the renderError comment.
  */
-func Render(path string, data map[string]interface{}) ([]byte, error) {
-	assertReady()
-
-	bytes, err := RenderPage(path, data)
+func (this *StateInstance) Render(path string, data map[string]interface{}) ([]byte, error) {
+	bytes, err := this.RenderPage(path, data)
 
 	if err != nil {
-		return RenderError(err, data)
+		return this.RenderError(err, data)
 	}
 
 	return bytes, nil
@@ -37,16 +40,14 @@ func Render(path string, data map[string]interface{}) ([]byte, error) {
 // Takes a path to a page and a data map. Renders the page and, hierarchically,
 // all layouts enclosing it, up to the root, passing the data map to each
 // template.
-func RenderPage(path string, data map[string]interface{}) ([]byte, error) {
-	assertReady()
-
+func (this *StateInstance) RenderPage(path string, data map[string]interface{}) ([]byte, error) {
 	// Check for nil map.
 	if data == nil {
 		data = map[string]interface{}{}
 	}
 
 	// Validate and adjust path.
-	path, err := parsePath(path, Pages)
+	path, err := parsePath(path, this.pages)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +57,7 @@ func RenderPage(path string, data map[string]interface{}) ([]byte, error) {
 
 	// Render the template into each enclosing layout.
 	for _, pt := range paths {
-		bytes, err := renderAt(pt, data, Pages)
+		bytes, err := renderAt(this.pages, pt, data)
 		if err != nil {
 			return nil, err
 		}
@@ -72,15 +73,13 @@ func RenderPage(path string, data map[string]interface{}) ([]byte, error) {
 
 // Renders a standalone template at the given path. Unlike pages, names of
 // standalones may begin with $.
-func RenderStandalone(path string, data map[string]interface{}) ([]byte, error) {
-	assertReady()
-
+func (this *StateInstance) RenderStandalone(path string, data map[string]interface{}) ([]byte, error) {
 	// A template must exist.
-	if Standalone.Lookup(path) == nil {
+	if this.standalone.Lookup(path) == nil {
 		return nil, err404
 	}
 
-	return renderAt(path, data, Standalone)
+	return renderAt(this.standalone, path, data)
 }
 
 /**
@@ -101,7 +100,7 @@ func RenderStandalone(path string, data map[string]interface{}) ([]byte, error) 
  * is not to signal a complete failure, but to carry the information about the
  * character of the problem (if any) that occurred in the process.
  */
-func RenderError(err error, data map[string]interface{}) (bytes []byte, lastErr error) {
+func (this *StateInstance) RenderError(err error, data map[string]interface{}) (bytes []byte, lastErr error) {
 	// Map of error codes that have occurred at least once.
 	codes := map[int]bool{}
 
@@ -122,10 +121,10 @@ func RenderError(err error, data map[string]interface{}) (bytes []byte, lastErr 
 		if codes[code] {
 			// Double 500 -> fall back on bytes.
 			if code == 500 {
-				log("internal rendering error")
+				log(this, "internal rendering error")
 				// Use the provided UltimateFailure data, if possible.
-				if len(conf.UltimateFailure) > 0 {
-					bytes = conf.UltimateFailure
+				if len(this.config.UltimateFailure) > 0 {
+					bytes = this.config.UltimateFailure
 					// Otherwise use the default message.
 				} else {
 					bytes = []byte(err500ISE)
@@ -140,8 +139,31 @@ func RenderError(err error, data map[string]interface{}) (bytes []byte, lastErr 
 		codes[code] = true
 
 		// Try to render the matching page.
-		bytes, err = RenderPage(ErrorPath(err), data)
+		bytes, err = this.RenderPage(this.errorPath(err), data)
 	}
 
 	return
+}
+
+/********************************** Private **********************************/
+
+// Renders the given template at the given path or returns an error.
+func renderAt(temp *template.Template, path string, data map[string]interface{}) ([]byte, error) {
+	// Check for nil map.
+	if data == nil {
+		data = map[string]interface{}{}
+	}
+
+	// Mark path in data.
+	if str, _ := data["path"].(string); str == "" {
+		data["path"] = path
+	}
+
+	wr := new(utils.WR)
+	err := temp.ExecuteTemplate(wr, path, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(*wr), nil
 }

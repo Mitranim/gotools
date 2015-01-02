@@ -36,20 +36,20 @@ func isNil(value interface{}) bool {
 	}
 }
 
-// Render wrapper. Calls the conf.Render function if provided, otherwise it's a
-// no-op.
-func render(path string, data map[string]interface{}) ([]byte, error) {
-	if conf.Render != nil {
-		return conf.Render(path, data)
+// Render wrapper. Calls the config.Render function if provided, otherwise
+// returns zero bytes.
+func render(ct *ContextInstance, path string, data map[string]interface{}) ([]byte, error) {
+	if ct.config.Render != nil {
+		return ct.config.Render(path, data)
 	}
 	return []byte{}, nil
 }
 
-// CodePath wrapper. Calls the conf.CodePath function if provided, otherwise
+// CodePath wrapper. Calls the config.CodePath function if provided, otherwise
 // uses a straight number-to-string conversion.
-func codePath(code int) string {
-	if conf.CodePath != nil {
-		return conf.CodePath(code)
+func codePath(ct *ContextInstance, code int) string {
+	if ct.config.CodePath != nil {
+		return ct.config.CodePath(code)
 	}
 	return utils.CodePath(code)
 }

@@ -1,7 +1,6 @@
 package context
 
-// Example middleware snippet to map context to a Martini request handler chain
-// for dependency injection in subsequent handlers.
+// Example middleware snippet: how to map context to a Martini request handler.
 
 /*
 
@@ -10,16 +9,16 @@ import (
   "net/http"
 
   // Third party
-  gt "github.com/Mitranim/gotools"
+  context "github.com/Mitranim/gotools/context"
   "github.com/go-martini/martini"
 )
 
 // Maps a new context to a martini request handler chain.
 func MapContext(rw http.ResponseWriter, req *http.Request, cont martini.Context) {
   // Context object.
-  ct := gt.NewContext(rw, req)
+  ct := context.NewContext(rw, req, context.Config{Render: MyRenderFunc})
   // Mapping.
-  cont.MapTo(ct, (*gt.Context)(nil))
+  cont.MapTo(ct, (*context.Context)(nil))
 }
 
 */

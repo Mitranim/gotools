@@ -1,19 +1,16 @@
 package context
 
+// Context interface definition.
+
 import (
 	// Standard
-	// "encoding/json"
 	"net/http"
 )
-
-/********************************** Context **********************************/
 
 // Context interface definition.
 type Context interface {
 
-	/**
-	 * Stored values
-	 */
+	/*----------------------------- Stored values -----------------------------*/
 
 	// Returns the data associated with the context.
 	Data() map[string]interface{}
@@ -24,9 +21,7 @@ type Context interface {
 	// Returns the request.
 	Req() *http.Request
 
-	/**
-	 * Writing
-	 */
+	/*-------------------------------- Writing --------------------------------*/
 
 	// Side effect: must set the specified status code on own response writer.
 	Code(int) Context
@@ -44,9 +39,7 @@ type Context interface {
 	// page and set the code as per RenderError.
 	Render(string)
 
-	/**
-	 * Error handling
-	 */
+	/*---------------------------- Error handling -----------------------------*/
 
 	// Side effect: must set the http status code corresponding to the error type
 	// and send the error's message as plain text. Intended for use in API
@@ -65,9 +58,7 @@ type Context interface {
 	// API handlers.
 	Ought(error)
 
-	/**
-	 * HTTP
-	 */
+	/*--------------------------------- HTTP ----------------------------------*/
 
 	// Side effect: must redirect to the given path with the code 301.
 	Redirect(string)
@@ -75,9 +66,7 @@ type Context interface {
 	// Side effect: must redirect to the given path with the code 302.
 	RedirectPermanent(string)
 
-	/**
-	 * JSON
-	 */
+	/*--------------------------------- JSON ----------------------------------*/
 
 	// Side effect: must write the given value as json and set the Content-Type
 	// header to "application/json; charset=UTF-8". If encoding fails, must send

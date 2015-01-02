@@ -3,8 +3,6 @@ package dsadapter
 // Private utilities.
 
 import (
-	// Standard
-	"net/http"
 	// Third party
 	"github.com/Mitranim/gotools/utils"
 )
@@ -19,22 +17,6 @@ const (
 )
 
 /********************************* Utilities *********************************/
-
-// Calls the Debugger function from the config, if defined.
-func log(req *http.Request, values ...interface{}) {
-	if conf.Debugger != nil {
-		conf.Debugger(req, values...)
-	}
-}
-
-// Returns the result of calling the RndId function from the config, if it's
-// defined. Otherwise uses the built-in.
-func rndId() string {
-	if conf.RndId != nil {
-		return conf.RndId()
-	}
-	return RndId()
-}
 
 // Converts an http.Request.URL.Query to a map of params fit for a datastore
 // query.

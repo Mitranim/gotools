@@ -9,27 +9,29 @@ import (
 	"github.com/Mitranim/gotools/utils"
 )
 
-/********************************** Globals **********************************/
-
 /**
- * Map of records mapped to URL resource names. Typical usage:
+ * Returns the map of URL resource strings to record types, creating it if
+ * it's nil. Typical usage:
  *
  *   // Define a type.
  *   type User struct { <...> }
  *
  *   // Register the type as a resource.
- *   dsadapter.Resources["users"] = (*User)(nil)
+ *   dsadapter.Resources()["users"] = (*User)(nil)
  */
-var Resources = map[string]Record{}
-
-/********************************* Utilities *********************************/
+func (this *StateInstance) Resources() map[string]Record {
+	if this.resources == nil {
+		this.resources = map[string]Record{}
+	}
+	return this.resources
+}
 
 // If there is a record type registered under the given resource name, this
 // allocates a zero value of that type and returns a pointer to it masquerading
 // as Record. If there isn't a matching type, this returns nil.
-func NewRecordByResource(name string) Record {
+func (this *StateInstance) NewRecordByResource(name string) Record {
 	// Grab a reference record.
-	record := Resources[name]
+	record := this.Resources()[name]
 	if record == nil {
 		return nil
 	}
@@ -41,25 +43,25 @@ func NewRecordByResource(name string) Record {
 // If there is a record type registered under the given resource name, this
 // allocates a nil slice of that type and returns a pointer to it masquerading
 // as interface{}. If there isn't a matching type, this returns nil.
-func NewCollectionByResource(name string) interface{} {
+func (this *StateInstance) NewCollectionByResource(name string) interface{} {
 	// Grab a reference record.
-	record := Resources[name]
+	record := this.Resources()[name]
 	if record == nil {
 		return nil
 	}
 	// Make a slice of it and return a pointer to that slice.
-	return SliceOf(record)
+	return this.SliceOf(record)
 }
 
 // Allocates a zero-length non-nil slice of the given value's type, takes its
 // pointer, and returns the pointer masquerading as interface{}.
-func SliceOf(value interface{}) interface{} {
+func (this *StateInstance) SliceOf(value interface{}) interface{} {
 	return reflect.New(reflect.SliceOf(reflect.TypeOf(value))).Interface()
 }
 
 // Takes a pointer to a collection and returns a new Record of its type. Use
 // SliceOf for the (roughly) opposite effect.
-func NewRecordFromCollection(collection interface{}) (Record, error) {
+func (this *StateInstance) NewRecordFromCollection(collection interface{}) (Record, error) {
 	// We're going to return this error if anything goes wrong.
 	err := utils.Error("a collection must be a slice of a struct pointer type that implements Record")
 

@@ -1,5 +1,7 @@
 package context
 
+// A type that implements the Context interface.
+
 import (
 	// Standard
 	"encoding/json"
@@ -7,39 +9,26 @@ import (
 	"reflect"
 )
 
-/********************************** Context **********************************/
+/*********************************** Type ************************************/
 
-// A type that implements the Context interface.
+// ContextInstance is a type that implements the Context interface. When you
+// customise and extend the Context interface, embed `ContextInstance` (without
+// a field name) as the first value in your struct to have direct access to its
+// methods.
 type ContextInstance struct {
-	data map[string]interface{}
-	rw   http.ResponseWriter
-	req  *http.Request
+	data   map[string]interface{}
+	rw     http.ResponseWriter
+	req    *http.Request
+	config Config
 }
 
-/****************************** Context Methods ******************************/
+/******************************* Stored Values *******************************/
 
-/**
- * Stored values
- */
+func (this *ContextInstance) Data() map[string]interface{} { return this.data }
+func (this *ContextInstance) RW() http.ResponseWriter      { return this.rw }
+func (this *ContextInstance) Req() *http.Request           { return this.req }
 
-// Returns the data associated with the request.
-func (this *ContextInstance) Data() map[string]interface{} {
-	return this.data
-}
-
-// Returns the http.ResponseWriter associated with the request.
-func (this *ContextInstance) RW() http.ResponseWriter {
-	return this.rw
-}
-
-// Returns the *http.Request associated with the request.
-func (this *ContextInstance) Req() *http.Request {
-	return this.req
-}
-
-/**
- * Writing
- */
+/********************************** Writing **********************************/
 
 // Sets the http status code to the given integer.
 func (this *ContextInstance) Code(code int) Context {
@@ -64,14 +53,12 @@ func (this *ContextInstance) End() Context {
 // Renders the template at the given path, writing the output to the
 // http.ResponseWriter associated with the current request.
 func (this *ContextInstance) Render(path string) {
-	bytes, err := render(path, this.Data())
+	bytes, err := render(this, path, this.Data())
 	this.Code(ErrorCode(err))
 	this.RW().Write(bytes)
 }
 
-/**
- * Error handling
- */
+/****************************** Error Handling *******************************/
 
 // Sets the status code corresponding to the error and sends its message.
 func (this *ContextInstance) SendError(err error) {
@@ -89,7 +76,7 @@ func (this *ContextInstance) Must(err error) {
 		return
 	}
 	// Error -> render appropriate page, then panic.
-	this.Render(codePath(ErrorCode(err)))
+	this.Render(codePath(this, ErrorCode(err)))
 	Panic()
 }
 
@@ -109,9 +96,7 @@ func (this *ContextInstance) Ought(err error) {
 	Panic()
 }
 
-/**
- * HTTP
- */
+/*********************************** HTTP ************************************/
 
 func (this *ContextInstance) Redirect(path string) {
 	http.Redirect(this.rw, this.req, path, http.StatusFound)
@@ -121,9 +106,7 @@ func (this *ContextInstance) RedirectPermanent(path string) {
 	http.Redirect(this.rw, this.req, path, http.StatusMovedPermanently)
 }
 
-/**
- * JSON
- */
+/*********************************** JSON ************************************/
 
 // Sends the given value as json. If the value is nil, sends a placeholder value
 // obtained by checking the value's type with reflection. If decoding fails,

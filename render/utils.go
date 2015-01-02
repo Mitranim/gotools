@@ -18,7 +18,7 @@ var ErrorCode = utils.ErrorCode
 // Combines the status code and code path functions to generate a template path
 // from an error.
 func ErrorPath(err error) string {
-	return codePath(ErrorCode(err))
+	return CodePath(ErrorCode(err))
 }
 
 // Converts an http status code to a template path.

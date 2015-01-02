@@ -62,11 +62,6 @@ type Record interface {
 	Kind() string
 }
 
-// Can compute properties.
-type computer interface {
-	Compute()
-}
-
 /**
  * Generic collection definition.
  *

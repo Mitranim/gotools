@@ -3,6 +3,9 @@ package gotools
 // Imports and republishes the components, wrapping them into one package.
 
 import (
+	// Standard
+	"net/http"
+
 	// Components
 	"github.com/Mitranim/gotools/context"
 	"github.com/Mitranim/gotools/dsadapter"
@@ -14,6 +17,7 @@ import (
 
 /********************************** Shared ***********************************/
 
+// Functions
 var (
 	ErrorCode = utils.ErrorCode
 	CodePath  = utils.CodePath
@@ -23,78 +27,42 @@ var (
 
 /********************************** context **********************************/
 
-/*-------------------------------- Functions --------------------------------*/
-
+// Functions
 var (
-	NewContext = context.NewContext
-	Panic      = context.Panic
-	Recover    = context.Recover
+	Panic   = context.Panic
+	Recover = context.Recover
 )
 
-/*---------------------------------- Types ----------------------------------*/
-
+// Types
 type Context context.Context
-type ConfigContext context.Config
-type ContextInstance context.ContextInstance
+type ContextConfig context.Config
 
-/*-------------------------------- Adapters ---------------------------------*/
-
-func SetupContext(config ConfigContext) error {
-	return context.Setup(context.Config(config))
+// Adapters
+func NewContext(rw http.ResponseWriter, req *http.Request, config ContextConfig) Context {
+	return context.NewContext(rw, req, context.Config(config))
 }
 
 /********************************** render ***********************************/
 
-/*-------------------------------- Functions --------------------------------*/
+// Types
+type RenderState render.State
+type RenderConfig render.Config
 
-var (
-	Render           = render.Render
-	RenderError      = render.RenderError
-	RenderPage       = render.RenderPage
-	RenderStandalone = render.RenderStandalone
-	InlineFiles      = render.InlineFiles
-	Pages            = render.Pages
-	Standalone       = render.Standalone
-)
-
-/*---------------------------------- Types ----------------------------------*/
-
-type ConfigRender render.Config
-
-/*-------------------------------- Adapters ---------------------------------*/
-
-func SetupRender(config ConfigRender) error {
-	return render.Setup(render.Config(config))
+// Adapters
+func RenderSetup(config RenderConfig) (RenderState, error) {
+	state, err := render.Setup(render.Config(config))
+	return RenderState(state), err
 }
 
 /********************************* dsadapter *********************************/
 
-/*-------------------------------- Functions --------------------------------*/
-
+// Functions
 var (
-	Compute                 = dsadapter.Compute
-	Delete                  = dsadapter.Delete
-	Debug                   = dsadapter.Debug
-	Find                    = dsadapter.Find
-	FindAll                 = dsadapter.FindAll
-	FindByQuery             = dsadapter.FindByQuery
-	FindOne                 = dsadapter.FindOne
-	Key                     = dsadapter.Key
-	NewCollectionByResource = dsadapter.NewCollectionByResource
-	NewRecordByResource     = dsadapter.NewRecordByResource
-	NewRecordFromCollection = dsadapter.NewRecordFromCollection
-	Populate                = dsadapter.Populate
-	PopulateFuncs           = dsadapter.PopulateFuncs
-	Read                    = dsadapter.Read
-	RegisterForPopulate     = dsadapter.RegisterForPopulate
-	RndId                   = dsadapter.RndId
-	Save                    = dsadapter.Save
-	SliceOf                 = dsadapter.SliceOf
-	ToRecords               = dsadapter.ToRecords
+	DsaLog = dsadapter.Log
+	RndId  = dsadapter.RndId
 )
 
-/*--------------------------------- Values ----------------------------------*/
-
+// Constants
 const (
 	CodeCreate = dsadapter.CodeCreate
 	CodeRead   = dsadapter.CodeRead
@@ -102,15 +70,12 @@ const (
 	CodeDelete = dsadapter.CodeDelete
 )
 
-var Resources = dsadapter.Resources
-
-/*---------------------------------- Types ----------------------------------*/
-
+// Types
 type Record dsadapter.Record
-type ConfigDsa dsadapter.Config
+type DsaConfig dsadapter.Config
+type DsaState dsadapter.State
 
-/*-------------------------------- Adapters ---------------------------------*/
-
-func SetupDsa(config ConfigDsa) error {
+// Adapters
+func DsaSetup(config DsaConfig) DsaState {
 	return dsadapter.Setup(dsadapter.Config(config))
 }

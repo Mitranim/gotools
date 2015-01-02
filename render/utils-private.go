@@ -65,7 +65,7 @@ func readTemplates(dir string, temp *template.Template) error {
 
 // Traverses the inline file directory and reads each file into memory for
 // future inlining. Returns an error if anything goes wrong.
-func readInline(dir string) error {
+func readInline(dir string, inlineFiles map[string]template.HTML) error {
 	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
@@ -81,7 +81,7 @@ func readInline(dir string) error {
 		path = dePrefix(dir, path)
 
 		// Put into map.
-		InlineFiles[path] = template.HTML(bytes)
+		inlineFiles[path] = template.HTML(bytes)
 
 		return nil
 	})
@@ -164,31 +164,10 @@ func parsePath(path string, temp *template.Template) (string, error) {
 
 /*********************************** Other ***********************************/
 
-// Renders the given template at the given path or returns an error.
-func renderAt(path string, data map[string]interface{}, temp *template.Template) ([]byte, error) {
-	// Check for nil map.
-	if data == nil {
-		data = map[string]interface{}{}
-	}
-
-	// Mark path in data.
-	if str, _ := data["path"].(string); str == "" {
-		data["path"] = path
-	}
-
-	wr := new(utils.WR)
-	err := temp.ExecuteTemplate(wr, path, data)
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(*wr), nil
-}
-
-// Returns the mapped inline file (if available) or an empty string, registering
-// it in the given data. Further calls with the same data return an empty
-// string.
-func inline(path string, data map[string]interface{}) template.HTML {
+// Returns an inlined file at the given path (if available) or an empty string,
+// registering it in the given data map. Further calls with the same path and
+// data map return an empty string.
+func inline(state *StateInstance, path string, data map[string]interface{}) template.HTML {
 	// Make sure we have an inline cache.
 	cache, _ := data["inlined"].(map[string]bool)
 	if cache == nil {
@@ -197,16 +176,16 @@ func inline(path string, data map[string]interface{}) template.HTML {
 
 	// Check if we're in a development environment. If true, re-read the file from
 	// the disk.
-	if conf.DevChecker != nil && conf.DevChecker() {
-		bytes, err := ioutil.ReadFile(conf.InlineDir + "/" + path)
+	if state.config.DevChecker != nil && state.config.DevChecker() {
+		bytes, err := ioutil.ReadFile(state.config.InlineDir + "/" + path)
 		if err == nil {
-			InlineFiles[path] = template.HTML(bytes)
+			state.inlineFiles[path] = template.HTML(bytes)
 		}
 	}
 
 	// If it's already been inlined or if there's no such file, return an empty
 	// string.
-	str, ok := InlineFiles[path]
+	str, ok := state.inlineFiles[path]
 	if cache[path] || !ok {
 		return ""
 	}
@@ -217,26 +196,20 @@ func inline(path string, data map[string]interface{}) template.HTML {
 	return str
 }
 
-// Panics if the library is not ready. This is called at the beginning of each
-// public rendering function to assert that Setup has been called.
-func assertReady() {
-	if ready != true {
-		panic("Please call Setup before any rendering functions.")
+// Logs stuff using a logger from a config, if any.
+func log(state *StateInstance, values ...interface{}) {
+	if state.config.Logger != nil {
+		state.config.Logger(values...)
 	}
 }
 
-// Logs stuff using the logger from the config.
-func log(values ...interface{}) {
-	if conf.Logger != nil {
-		conf.Logger(values...)
-	}
-}
-
-// Converts the given code to a template path using the CodePath func passed in
-// config. If it's omitted, uses a direct int to string conversion: 404 -> "404".
-func codePath(code int) string {
-	if conf.CodePath != nil {
-		return conf.CodePath(code)
+// Converts the given error to a template path using a CodePath func passed in a
+// config, if any. If it's omitted, uses a direct int to string conversion: 404
+// -> "404".
+func errorPath(state *StateInstance, err error) string {
+	code := ErrorCode(err)
+	if state.config.CodePath != nil {
+		return state.config.CodePath(code)
 	}
 	return CodePath(code)
 }

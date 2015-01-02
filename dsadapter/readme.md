@@ -15,8 +15,11 @@ Database adapter for Golang web applications using the GAE Datastore.
 * [Description](#description)
 * [Features](#features)
 * [Installation](#installation)
+  * [Standalone](#standalone)
+  * [gotools](#gotools)
 * [Terminology](#terminology)
 * [API Reference](#api-reference)
+  * [State Type](#state-type)
   * [Record Type](#record-type)
     * [Lifecycle Methods Example](#lifecycle-methods-example)
     * [CRUD Methods Example](#crud-methods-example)
@@ -51,13 +54,15 @@ Database adapter for Golang web applications using the GAE Datastore.
     * [Setup](#setupconfig-error)
   * [Utilities](#utilities)
     * [Compute](#computeinterface)
-    * [ErrorCode](#errorcodeerror-int)
-    * [RndId](#rndid-string)
-    * [Debug](#debughttprequest-values-interface)
     * [ToRecords](#torecordsinterface-record)
+    * [RndId](#rndid-string)
+    * [Log](#loghttprequest-values-interface)
+    * [ErrorCode](#errorcodeerror-int)
   * [Errors](#errors)
 
 ## Installation
+
+### Standalone
 
 ```shell
 go get github.com/Mitranim/gotools/dsadapter
@@ -66,20 +71,51 @@ go get github.com/Mitranim/gotools/dsadapter
 In your Go files:
 
 ```golang
-import (
-  dsa "github.com/Mitranim/gotools/dsadapter"
-)
-
-var x = dsa.X
+import "github.com/Mitranim/gotools/dsadapter"
 ```
 
-Optionally, after importing, call `Setup()` to set the options:
+After importing, you must call [`Setup()`](#setup) with a [config](#config-type). This generates an object that encapsulates configuration and state. Its methods include all of the package's API with the exception of constants. The package itself remains stateless. You can call `Setup()` multiple times to generate different `dsadapter.State` objects within the same application.
+
+Example:
 
 ```golang
-dsadapter.Setup(dsadapter.Config{
-  RndId:    dsadapter.RndId, // or your custom id func
-  Debugger: dsadapter.Debug, // or your custom logging func
+import "github.com/Mitranim/gotools/dsadapter"
+
+var dsa = dsadapter.Setup(dsadapter.Config{
+  RndId:  dsadapter.RndId, // or your custom id func
+  Logger: dsadapter.Log,   // or your custom logging func
 })
+
+// proceed to use `dsa` for the dsadapter API
+```
+
+Unless otherwise noted, every function listed in this package is a method of a `dsadapter.State` object.
+
+### gotools
+
+Alternatively, you can use `dsadapter` as a part of the `gotools` package.
+
+```shell
+go get github.com/Mitranim/gotools
+```
+
+In your Go files:
+
+```golang
+import gt "github.com/Mitranim/gotools"
+```
+
+Just as with standalone, you must call `Setup()` to generate a `gt.DsaState` object that exposes the package's API:
+
+```golang
+import gt "github.com/Mitranim/gotools"
+
+var dsa = gt.DsaSetup(gt.DsaConfig{
+  RndId:  gt.RndId,  // or your custom id func
+  Logger: gt.DsaLog, // or your custom logging func
+})
+
+// proceed to use `dsa` for the dsadapter API
 ```
 
 ## Terminology
@@ -98,6 +134,59 @@ engines := []*Engine{}
 ## API Reference
 
 This reference is grouped into categories. In addition to listing public types and functions, it includes conventions; in other words, implementation details suggested by the library that need to be met by the user. Read below for details.
+
+### State type
+
+State is an object returned by a Setup call that encapsulates configuration, resource and populate maps, and exposes the package's API as methods. Unless otherwise noted, all functions listed in this reference are methods of a State object. For simplicity, the `Setup()` declarations are omitted and the state object's name is implied to be `dsa`.
+
+```golang
+type State interface {
+
+  /* Record Operations */
+
+  // See `record.go`.
+
+  Key(*http.Request, Record) *datastore.Key
+  Read(*http.Request, Record) error
+  Save(*http.Request, Record) error
+  Delete(*http.Request, Record) error
+  FindOne(*http.Request, Record, map[string]string) error
+
+  /* Collection Operations */
+
+  // See `collection.go`.
+
+  Find(*http.Request, interface{}, map[string]string, int) error
+  FindAll(*http.Request, interface{}, map[string]string) error
+  FindByQuery(*http.Request, interface{}) error
+
+  /* Resources */
+
+  // See `resource.go`.
+
+  Resources() map[string]Record
+  NewRecordByResource(string) Record
+  NewCollectionByResource(string) interface{}
+  SliceOf(interface{}) interface{}
+  NewRecordFromCollection(interface{}) (Record, error)
+
+  /* Populate */
+
+  // See `populate.go`.
+
+  PopulateFuncs() map[string]func(*http.Request)
+  RegisterForPopulate(interface{})
+  Populate(*http.Request)
+
+  /* Utilities */
+
+  // See `state-utils.go`.
+
+  Compute(interface{})
+  ToRecords(interface{}) []Record
+  RndId() string
+}
+```
 
 ### Record type
 
@@ -171,7 +260,7 @@ Verifies that the user associated with the given request has the rights to perfo
 ```golang
 func (this *Subscriber) Can(req *http.Request, code int) bool {
   // Only allowed to create (gross oversimplification)
-  if code == dsadapter.CodeCreate {
+  if code == dsa.CodeCreate {
     return true
   }
   return false
@@ -189,9 +278,9 @@ type Engine struct {
   // <...>
 }
 
-func (this *Engine) Save(req *http.Request) error   { return dsadapter.Save(req, this) }
-func (this *Engine) Read(req *http.Request) error   { return dsadapter.Read(req, this) }
-func (this *Engine) Delete(req *http.Request) error { return dsadapter.Delete(req, this) }
+func (this *Engine) Save(req *http.Request) error   { return dsa.Save(req, this) }
+func (this *Engine) Read(req *http.Request) error   { return dsa.Read(req, this) }
+func (this *Engine) Delete(req *http.Request) error { return dsa.Delete(req, this) }
 ```
 
 #### Utility Methods Example
@@ -217,7 +306,7 @@ Each record is identified uniquely in the Datastore by its kind and id within ki
 Generic create/update method for Record types. Saves a record to the Datastore by its kind and id. Example usage:
 
 ```golang
-func (this *Engine) Save(req *http.Request) error { return dsadapter.Save(req, this) }
+func (this *Engine) Save(req *http.Request) error { return dsa.Save(req, this) }
 ```
 
 If the record doesn't have an id (`GetId() == ""`), `dsadapter` generates and assigns a new random id before calling `Key()` and saving the record:
@@ -237,7 +326,7 @@ Be aware that you can't patch a Datastore entity by saving a struct with only _s
 Generic read method for Record types. Reads a record from the Datastore by its kind and id. Example usage:
 
 ```golang
-func (this *Engine) Read(req *http.Request) error { return dsadapter.Read(req, this) }
+func (this *Engine) Read(req *http.Request) error { return dsa.Read(req, this) }
 
 engine := &Engine{Id: "3720274029858504238"}
 
@@ -251,7 +340,7 @@ err := engine.Read(req)
 Generic delete method for Record types. Deletes a record from the Datastore by its kind and id. Example usage:
 
 ```golang
-func (this *Engine) Delete(req *http.Request) error { return dsadapter.Delete(req, this) }
+func (this *Engine) Delete(req *http.Request) error { return dsa.Delete(req, this) }
 
 engine := &Engine{Id: "3720274029858504238"}
 
@@ -267,7 +356,7 @@ Example:
 ```golang
 engine := new(Engine)
 
-err := FindOne(req, engine, map[string]string{"Name": "Zugelgeheiner"})
+err := dsa.FindOne(req, engine, map[string]string{"Name": "Zugelgeheiner"})
 
 // engine -> {Id: "3720274029858504238", Name: "Zugelgeheiner"}
 ```
@@ -290,7 +379,7 @@ Example:
 engines := new([]*Engine)
 
 // Suppose we have 10 engines in the Datastore
-err := Find(req, engines, nil, 2)
+err := dsa.Find(req, engines, nil, 2)
 
 // engines -> &[]*Engine{(*Engine)(0xc2103fa500), (*Engine)(0xc2103fa5a0)}
 ```
@@ -328,7 +417,7 @@ err = engine.Delete(req)
 
 #### Operation Codes
 
-`dsadapter` has four operation codes.
+`dsadapter` has four operation codes. They're published in the root of the package and are unavailable on a State.
 
 ```golang
 const (
@@ -374,12 +463,12 @@ type Quasar struct {
 (*Quasar)(nil)
 ```
 
-#### `Resources map[string]Record`
+#### `Resources() map[string]Record`
 
-Package-wide map of resource strings to record types, where types are represented with nil pointers to values. It's used internally by other resource methods. Register your resources by assigning them to this map. Example:
+Returns the map of resource strings to record types tied to the state object. Types are represented with nil pointers to values. It's used internally by other resource methods. Register your resources by assigning them to this map. Example:
 
 ```golang
-Resources["engines"] = (*Engine)(nil)
+Resources()["engines"] = (*Engine)(nil)
 ```
 
 #### `NewRecordByResource(string) Record`
@@ -391,10 +480,10 @@ The gotcha here is that while the underlying value has a concrete type, the retu
 Example:
 
 ```golang
-Resources["engines"] = (*Engine)(nil)
+Resources()["engines"] = (*Engine)(nil)
 
 // Get a new engine as Record
-engine := NewRecordByResource("engines")
+engine := dsa.NewRecordByResource("engines")
 
 // The underlying value is a concrete *Engine
 // fmt.Printf("#%v", engine)  ->  &Engine{Id: "", Name: ""}
@@ -416,10 +505,10 @@ The gotcha here is that the returned pointer has the type `interface{}`. [This a
 Example:
 
 ```golang
-Resources["engines"] = (*Engine)(nil)
+Resources()["engines"] = (*Engine)(nil)
 
 // Get a new collection as interface{}
-engines := NewCollectionByResource("engines")
+engines := dsa.NewCollectionByResource("engines")
 
 // The underlying value is a concrete *[]*Engine
 // fmt.Printf("#%v", engine)  ->  &[]*Engine{}
@@ -449,7 +538,7 @@ Example:
 ```golang
 engines := []*Engine{engine0, engine1}
 
-RegisterForPopulate(engines)
+dsa.RegisterForPopulate(engines)
 ```
 
 Only one populate per kind can be registered; attempts to register more than one collection of the same kind are silently ignored.
@@ -458,13 +547,13 @@ Only one populate per kind can be registered; attempts to register more than one
 
 Calls each populate function registered with RegisterForPopulate.
 
-#### `PopulateFuncs map[string]func(*http.Request){}`
+#### `PopulateFuncs() map[string]func(*http.Request)`
 
-Map of Datastore kinds that are being populated to functions created with `RegisterForPopulate()`.
+Returns the map of Datastore kinds that are being populated to the functions created with `RegisterForPopulate()`, tied to the state object.
 
 ### Setup
 
-After importing `dsadapter`, you can optionally reconfigure it by calling `Setup()` and passing a configuration struct Config with the appropriate options.
+After importing `dsadapter`, you must call `Setup()` and pass a configuration struct Config with the appropriate options. This returns a State object that you use for most of the API.
 
 #### Config type
 
@@ -476,45 +565,20 @@ type Config struct {
   RndId func() string
 
   // Logger function to call on populate and critical errors. If omitted, no
-  // logging is done. Pass dsadapter.Debug to use the default (recommended).
-  Debugger func(*http.Request, ...interface{})
+  // logging is done. Pass dsadapter.Log to use the default (recommended).
+  Logger func(*http.Request, ...interface{})
 }
 ```
 
-#### `Setup(Config) error`
+#### `Setup(Config) State`
 
-Saves the passed config into a package-wide global. The options take effect immediately.
+Returns a new State object encapsulating the given configuration, with its own resource and populate maps.
 
 ### Utilities
 
 #### `Compute(interface{})`
 
 Takes any value and calls its `Compute()` method, if available. If the value is a slice, loops over it and calls the `Compute()` method on each element, if possible. This is called automatically after reading a record or collection from the Datastore to recalculate computed properties.
-
-#### `ErrorCode(error) int`
-
-Reads the error message and returns the number from its beginning, if it falls in the http error code range: `400 <= x <= 599`. If the error doesn't begin with a number or it falls outside the boundary, the function returns `500`. If the error is nil, the function returns `200`.
-
-Example:
-
-```golang
-// From utils-private.go
-const err404 = utils.Error("404 not found")
-ErrorCode(err404) // -> 404
-
-var unknownErr = errors.New("no squirrel-to-squid interface defined")
-ErrorCode(unknownErr) // -> 500
-```
-
-When using functions and methods backed by `dsadapter` in your request handlers, you should examine them with `ErrorCode()` and set the appropriate http status code in your response.
-
-#### `RndId() string`
-
-Generates a random string id. This is used by default to make random ids for new records when saving them. You can override it by passing a custom `RndId` value in a `Setup()` call.
-
-#### `Debug(*http.Request, ...interface{})`
-
-A simple logging function. Logs the given values to an App Engine context with the status "debug", automatically `"%v"`'ing each value. Pass it into a `Setup()` call. (Logging is disabled otherwise.)
 
 #### `ToRecords(interface{}) []Record`
 
@@ -530,8 +594,36 @@ engines := []*Engine{engine0, engine1}
 engi := interface{}(engines)
 
 // []Record version
-engs := ToRecords(engi)
+engs := dsa.ToRecords(engi)
 ```
+
+#### `RndId() string`
+
+Generates a random string id. This is used by default to make random ids for new records when saving them. You can override it by passing a custom `RndId` value in a `Setup()` call.
+
+#### `Log(*http.Request, ...interface{})`
+
+This is published package-wide: `dsadapter.Log`.
+
+A simple logging function. Logs the given values to an App Engine context with the status "debug", automatically `"%v"`'ing each value. Pass it into a `Setup()` call. (Logging is disabled otherwise.)
+
+#### `ErrorCode(error) int`
+
+This is published package-wide: `dsadapter.ErrorCode`.
+
+Reads the error message and returns the number from its beginning, if it falls in the http error code range: `400 <= x <= 599`. If the error doesn't begin with a number or it falls outside the boundary, the function returns `500`. If the error is nil, the function returns `200`.
+
+Example:
+
+```golang
+var err404 = errors.New("404 not found")
+ErrorCode(err404) // -> 404
+
+var unknownErr = errors.New("no squirrel-to-squid interface defined")
+ErrorCode(unknownErr) // -> 500
+```
+
+When using functions and methods backed by `dsadapter` in your request handlers, you should examine them with `ErrorCode()` and set the appropriate http status code in your response.
 
 ### Errors
 
