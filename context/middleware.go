@@ -1,6 +1,7 @@
 package context
 
-// middleware.go
+// Example middleware snippet to map context to a Martini request handler chain
+// for dependency injection in subsequent handlers.
 
 /*
 
