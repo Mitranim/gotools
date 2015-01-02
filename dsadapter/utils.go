@@ -5,9 +5,13 @@ package dsadapter
 import (
 	// Standard
 	"math/rand"
+	"net/http"
 	"reflect"
 	"strconv"
 	"time"
+
+	// App Engine
+	"appengine"
 
 	// Third party
 	"github.com/Mitranim/gotools/utils"
@@ -107,5 +111,8 @@ func ToRecords(value interface{}) []Record {
 // Republish the error-to-code converter.
 var ErrorCode = utils.ErrorCode
 
-// Republish a simple logging function so it can be passed in a Config.
-var Log = utils.Log
+// Logs to a GAE context with level `debug`.
+func Debug(req *http.Request, values ...interface{}) {
+	gc := appengine.NewContext(req)
+	gc.Debugf(repeat("%v", len(values)), values...)
+}

@@ -35,10 +35,40 @@ func CodePath(code int) string {
 	return itoa(code)
 }
 
-// print/println wrapper that automatically does fmt %v for each value.
+// print/println wrapper that automatically does fmt %v for each value. Only
+// for runtimes that support logging to stdout.
 func Log(values ...interface{}) {
 	for _, value := range values {
 		print(fmt.Sprintf("%v", value) + " ")
 	}
 	println()
+}
+
+/************************************ WR *************************************/
+
+// Rudimental io.ReadWriter.
+type WR []byte
+
+func (this *WR) Write(bytes []byte) (int, error) {
+	*this = append(*this, bytes...)
+	return len(*this), nil
+}
+
+func (this *WR) Read(bytes []byte) (int, error) {
+	copy(bytes, *this)
+	return len(bytes), nil
+}
+
+func (this *WR) String() string {
+	return string(*this)
+}
+
+/*********************************** Error ***********************************/
+
+// Rudimental error type.
+type Error string
+
+// Error method.
+func (this Error) Error() string {
+	return string(this)
 }

@@ -48,7 +48,7 @@ func Find(req *http.Request, collection interface{}, params map[string]string, l
 	_, err = q.GetAll(gc, collection)
 
 	if err != nil {
-		log("-- error in datastore query:", err)
+		log(req, "-- error in datastore query:", err)
 		return err
 	}
 

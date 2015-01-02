@@ -4,7 +4,7 @@ Micro-framework for Golang web servers. Condenses many common request handler ta
 
 Has modules for smart page rendering, contextual handler tasks, and database modeling.
 
-Each module is completely independent from others and can be used in isolation. See their respective docs:
+Although the `gotools` are tied together in the root package, each component is independent from others and can be used in isolation. See their respective docs:
 * [`render` readme](render)
 * [`context` readme](context)
 * [`dsadapter` readme](dsadapter)
@@ -24,3 +24,5 @@ import (
   gt "github.com/Mitranim/gotools"
 )
 ```
+
+The root `gotools` package imports all of its components and republishes their parts with some adaptations. When using the whole package, you only need to import `gotools`.

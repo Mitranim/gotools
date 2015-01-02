@@ -5,6 +5,8 @@ package dsadapter
 import (
 	// Standard
 	"reflect"
+	// Third party
+	"github.com/Mitranim/gotools/utils"
 )
 
 /********************************** Globals **********************************/
@@ -59,7 +61,7 @@ func SliceOf(value interface{}) interface{} {
 // SliceOf for the (roughly) opposite effect.
 func NewRecordFromCollection(collection interface{}) (Record, error) {
 	// We're going to return this error if anything goes wrong.
-	err := errorStr("a collection must be a slice of a struct pointer type that implements Record")
+	err := utils.Error("a collection must be a slice of a struct pointer type that implements Record")
 
 	val := reflect.ValueOf(collection)
 

@@ -7,8 +7,6 @@ import (
 	"net/http"
 )
 
-/******************************** Interfaces *********************************/
-
 // Record is an instance of a database model with common parsing, crud and
 // validation methods.
 type Record interface {
@@ -102,26 +100,3 @@ type computer interface {
  *   * the user calls its Delete method
  *     * record is deleted from database
  */
-
-/********************************** Config ***********************************/
-
-// The Config object passed by the user when setting up this package.
-type Config struct {
-	// Function to call when generating a missing id for a new record. If omitted,
-	// the default dsadapter.RndId function is used. To disable automatic id generation
-	// (not recommended), pass a function that returns an empty string.
-	RndId func() string
-	// Logger function to call on populate and critical errors. If omitted, no
-	// logging is done. Pass dsadapter.Log to use the default logger.
-	Logger func(...interface{})
-}
-
-/********************************* errorStr **********************************/
-
-// Rudimental error type.
-type errorStr string
-
-// Error method.
-func (this errorStr) Error() string {
-	return string(this)
-}

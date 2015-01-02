@@ -1,12 +1,15 @@
 package render
 
 import (
+	// Standard
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+	// Third party
+	"github.com/Mitranim/gotools/utils"
 )
 
 /********************************* Constants *********************************/
@@ -14,9 +17,9 @@ import (
 // Errors used in this package. Each error starts with an http status code that
 // can be converted to int with ErrorCode(err).
 const (
-	err404    = errorStr("404 template not found")
-	err500    = errorStr("500 template rendering error")
-	err500ISE = errorStr("500 internal server error")
+	err404    = utils.Error("404 template not found")
+	err500    = utils.Error("500 template rendering error")
+	err500ISE = utils.Error("500 internal server error")
 )
 
 /********************** Template Registration Utilities **********************/
@@ -47,13 +50,13 @@ func readTemplates(dir string, temp *template.Template) error {
 		// Get file contents
 		bytes, err := ioutil.ReadFile(path)
 		if err != nil {
-			return errorStr(fmt.Sprintf("couldn't read file at path: %s, error: %#v\n", path, err))
+			return utils.Error(fmt.Sprintf("couldn't read file at path: %s, error: %#v\n", path, err))
 		}
 
 		// Parse template
 		_, err = temp.New(modpath).Parse(string(bytes))
 		if err != nil {
-			return errorStr(fmt.Sprintf("couldn't parse template at path: %s, error: %#v\n", modpath, err))
+			return utils.Error(fmt.Sprintf("couldn't parse template at path: %s, error: %#v\n", modpath, err))
 		}
 
 		return nil
@@ -71,7 +74,7 @@ func readInline(dir string) error {
 		// Read file into memory.
 		bytes, err := ioutil.ReadFile(path)
 		if err != nil {
-			return errorStr(fmt.Sprintf("couldn't read file at path: %s, error: %#v\n", path, err))
+			return utils.Error(fmt.Sprintf("couldn't read file at path: %s, error: %#v\n", path, err))
 		}
 
 		// Remove directory prefix from path.
@@ -173,7 +176,7 @@ func renderAt(path string, data map[string]interface{}, temp *template.Template)
 		data["path"] = path
 	}
 
-	wr := new(readWriter)
+	wr := new(utils.WR)
 	err := temp.ExecuteTemplate(wr, path, data)
 	if err != nil {
 		return nil, err

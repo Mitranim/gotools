@@ -3,7 +3,10 @@ package context
 // Private utility functions and constants.
 
 import (
+	// Standard
 	"reflect"
+	// Third party
+	"github.com/Mitranim/gotools/utils"
 )
 
 /********************************* Constants *********************************/
@@ -48,28 +51,5 @@ func codePath(code int) string {
 	if conf.CodePath != nil {
 		return conf.CodePath(code)
 	}
-	return itoa(code)
-}
-
-// Converts a string to a base 10 integer. Scans the string until the first non-
-// digit and ignores the rest.
-func atoi(str string) (result int) {
-	// Loop over the bytes, building the result, until we hit a non-digit.
-	for i := 0; i < len(str) && str[i] >= '0' && str[i] <= '9'; i++ {
-		if result == 0 {
-			result = int(str[i]) - '0'
-		} else {
-			result = result*10 + int(str[i]) - '0'
-		}
-	}
-	return
-}
-
-// Converts a positive integer into a same-looking string.
-func itoa(num int) (result string) {
-	for num > 0 {
-		result = string('0'+num%10) + result
-		num /= 10
-	}
-	return
+	return utils.CodePath(code)
 }

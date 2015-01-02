@@ -10,15 +10,16 @@ import (
   "net/http"
 
   // Third party
+  gt "github.com/Mitranim/gotools"
   "github.com/go-martini/martini"
 )
 
 // Maps a new context to a martini request handler chain.
 func MapContext(rw http.ResponseWriter, req *http.Request, cont martini.Context) {
   // Context object.
-  ct := NewContext(rw, req)
+  ct := gt.NewContext(rw, req)
   // Mapping.
-  cont.MapTo(ct, (*Context)(nil))
+  cont.MapTo(ct, (*gt.Context)(nil))
 }
 
 */

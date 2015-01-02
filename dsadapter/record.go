@@ -10,6 +10,9 @@ import (
 	// App Engine
 	"appengine"
 	"appengine/datastore"
+
+	// Third party
+	"github.com/Mitranim/gotools/utils"
 )
 
 /****************************** Query Functions ******************************/
@@ -45,7 +48,7 @@ func FindOne(req *http.Request, destination Record, params map[string]string) er
 	dst := reflect.ValueOf(destination)
 	// Make sure the destination is settable.
 	if dst.Kind() != reflect.Ptr || !dst.Elem().CanSet() {
-		return errorStr("the destination record must be a settable pointer")
+		return utils.Error("the destination record must be a settable pointer")
 	}
 	// Set the result.
 	dst.Elem().Set(res)

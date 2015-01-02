@@ -9,7 +9,7 @@ import (
 
 /********************************* Functions *********************************/
 
-// Default logging function.
+// Default logging function (only for runtimes that support logging to stdout).
 var Log = utils.Log
 
 // Converts an error to an http status code.

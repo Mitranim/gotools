@@ -74,6 +74,7 @@ func SetupRender(config ConfigRender) error {
 var (
 	Compute                 = dsadapter.Compute
 	Delete                  = dsadapter.Delete
+	Debug                   = dsadapter.Debug
 	Find                    = dsadapter.Find
 	FindAll                 = dsadapter.FindAll
 	FindByQuery             = dsadapter.FindByQuery
@@ -83,6 +84,7 @@ var (
 	NewRecordByResource     = dsadapter.NewRecordByResource
 	NewRecordFromCollection = dsadapter.NewRecordFromCollection
 	Populate                = dsadapter.Populate
+	PopulateFuncs           = dsadapter.PopulateFuncs
 	Read                    = dsadapter.Read
 	RegisterForPopulate     = dsadapter.RegisterForPopulate
 	RndId                   = dsadapter.RndId

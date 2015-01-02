@@ -2,24 +2,29 @@ package dsadapter
 
 // Private utilities.
 
-import ()
+import (
+	// Standard
+	"net/http"
+	// Third party
+	"github.com/Mitranim/gotools/utils"
+)
 
 /********************************* Constants *********************************/
 
 // Error constants.
 const (
-	err400 = errorStr("400 bad request")
-	err403 = errorStr("403 insufficient permissions")
-	err404 = errorStr("404 not found")
-	err500 = errorStr("500 internal server error")
+	err400 = utils.Error("400 bad request")
+	err403 = utils.Error("403 insufficient permissions")
+	err404 = utils.Error("404 not found")
+	err500 = utils.Error("500 internal server error")
 )
 
 /********************************* Utilities *********************************/
 
-// Calls the Logger function from the config, if it's defined.
-func log(values ...interface{}) {
-	if conf.Logger != nil {
-		conf.Logger(values...)
+// Calls the Debugger function from the config, if defined.
+func log(req *http.Request, values ...interface{}) {
+	if conf.Debugger != nil {
+		conf.Debugger(req, values...)
 	}
 }
 
@@ -45,4 +50,16 @@ func toParams(query map[string][]string) map[string]string {
 	}
 
 	return params
+}
+
+// Repeats the given string N times, joined with spaces.
+func repeat(str string, count int) (result string) {
+	for ; count > 0; count-- {
+		if result == "" {
+			result = str
+		} else if str != "" {
+			result += " " + str
+		}
+	}
+	return
 }

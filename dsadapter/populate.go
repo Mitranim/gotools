@@ -9,7 +9,7 @@ import (
 
 /********************************** Globals **********************************/
 
-var populateFuncs = map[string]func(*http.Request){}
+var PopulateFuncs = map[string]func(*http.Request){}
 
 /********************************* Utilities *********************************/
 
@@ -17,7 +17,7 @@ var populateFuncs = map[string]func(*http.Request){}
 // panics if we do this asynchronously with goroutines, thus the synchrony. We
 // could probably get around this by passing around the same GAE context.
 func Populate(req *http.Request) {
-	for _, fn := range populateFuncs {
+	for _, fn := range PopulateFuncs {
 		fn(req)
 	}
 }
@@ -34,19 +34,19 @@ func RegisterForPopulate(values interface{}) {
 
 	// Ignore if there's already a function under this collection's kind.
 	kind := records[0].Kind()
-	if populateFuncs[kind] != nil {
+	if PopulateFuncs[kind] != nil {
 		return
 	}
 
 	// Register a populate func.
-	populateFuncs[kind] = func(req *http.Request) {
-		log("   populating kind:", kind)
+	PopulateFuncs[kind] = func(req *http.Request) {
+		log(req, "   populating kind:", kind)
 
 		// Retrieve all existing records of this kind to delete them.
 		oldRecs := SliceOf(records[0])
 		err := FindAll(req, oldRecs, nil)
 		if err != nil {
-			log("!! unexpected error when retrieving old records during populate:", err)
+			log(req, "!! unexpected error when retrieving old records during populate:", err)
 		}
 
 		// Loop over and call the Delete method of each old record.
@@ -55,11 +55,11 @@ func RegisterForPopulate(values interface{}) {
 				// Try to delete; abort the sequence if this fails.
 				err := rec.Delete(req)
 				if err != nil {
-					log("!! unexpected error when trying to delete an old record during populate:", err)
+					log(req, "!! unexpected error when trying to delete an old record during populate:", err)
 					return
 				}
 			}
-			log("-- deleted all records of kind:", kind)
+			log(req, "-- deleted all records of kind:", kind)
 		}()
 
 		// Loop over records and save them.
@@ -70,12 +70,12 @@ func RegisterForPopulate(values interface{}) {
 				Compute(record)
 				// Try to save it and abort the sequence if this fails.
 				if err := record.Save(req); err != nil {
-					log("!! failed to save record during populate:", err)
-					log("!! aborting populate of kind:", kind)
+					log(req, "!! failed to save record during populate:", err)
+					log(req, "!! aborting populate of kind:", kind)
 					return
 				}
 			}
-			log("++ successfully populated all records of kind:", kind)
+			log(req, "++ successfully populated all records of kind:", kind)
 		}()
 	}
 }

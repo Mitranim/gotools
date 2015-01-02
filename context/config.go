@@ -22,9 +22,6 @@ import ()
 // Config variable. Set on a Setup call.
 var conf Config
 
-// Readiness status. Set to true after a successful Setup call.
-var ready bool
-
 /********************************** Config ***********************************/
 
 type Config struct {
@@ -38,13 +35,7 @@ type Config struct {
 /*********************************** Init ************************************/
 
 func Setup(config Config) error {
-	if ready {
-		return nil
-	}
-
 	// Save into global.
 	conf = config
-
-	ready = true
 	return nil
 }
