@@ -21,6 +21,6 @@ In your Go files:
 
 ```golang
 import (
-  "github.com/Mitranim/gotools"
+  gt "github.com/Mitranim/gotools"
 )
 ```

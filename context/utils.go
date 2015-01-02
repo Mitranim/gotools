@@ -30,7 +30,7 @@ func Recover() {
 	}
 }
 
-// Panics with the intended panic message.
+// Panics with the intentional panic message.
 func Panic() {
 	panic(intentionalPanicMessage)
 }

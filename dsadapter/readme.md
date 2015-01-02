@@ -4,12 +4,11 @@ Database adapter for Golang web applications using the GAE Datastore.
 
 ## Features
 
+* Generic methods for model types
 * Generic functions for collection operations
-* Generic methods for record types
 * Generic methods for type conversion (records to collections and vice versa)
-* Mapping of resource strings to types, resource factory
+* Mapping of resource strings to types, resource factories
 * Record lifecycle with validation and permission checks
-* DB populate helpers
 
 ## Contents
 
@@ -38,7 +37,7 @@ Database adapter for Golang web applications using the GAE Datastore.
     * [CodeUpdate](#codeupdate)
     * [CodeDelete](#codedelete)
   * [Resources](#resources)
-    * [Resources](#resources)
+    * [Resources](#resources-mapstringrecord)
     * [NewRecordByResource](#newrecordbyresourcestring-record)
     * [NewCollectionByResource](#newcollectionbyresourcestring-interface)
     * [SliceOf](#sliceofinterface-interface)
@@ -224,6 +223,7 @@ If the record doesn't have an id (`GetId() == ""`), `dsadapter` generates and as
 
 ```golang
 engine := &Engine{Name: "Zugelgeheiner"}
+
 err := engine.Save(req)
 
 // engine.GetId() -> "3720274029858504238"
@@ -239,6 +239,7 @@ Generic read method for Record types. Reads a record from the Datastore by its k
 func (this *Engine) Read(req *http.Request) error { return dsadapter.Read(req, this) }
 
 engine := &Engine{Id: "3720274029858504238"}
+
 err := engine.Read(req)
 
 // engine -> {Id: "3720274029858504238", Name: "Zugelgeheiner"}
@@ -252,6 +253,7 @@ Generic delete method for Record types. Deletes a record from the Datastore by i
 func (this *Engine) Delete(req *http.Request) error { return dsadapter.Delete(req, this) }
 
 engine := &Engine{Id: "3720274029858504238"}
+
 err := engine.Delete(req)
 ```
 
@@ -408,7 +410,7 @@ _, ok := engine.(*Quasar)
 
 Similar to `NewRecordByResource`, but instead of creating a record of the concrete resource type, it creates an empty slice of that type. Returns a pointer to the slice.
 
-The gotcha here is that the returned pointer has type `interface{}`. [This article](https://github.com/golang/go/wiki/InterfaceSlice) explains why. It can still be passed into functions that accept collections as `interface{}`, like `FindByQuery`. If you need a slice of records, call `ToRecords()` to convert it to the `[]Record` type. If you want the concrete underlying type, do a type assertion.
+The gotcha here is that the returned pointer has the type `interface{}`. [This article](https://github.com/golang/go/wiki/InterfaceSlice) explains why. It can still be passed into functions that accept collections as `interface{}`, like `FindByQuery`. If you need a slice of records, call `ToRecords()` to convert it to the `[]Record` type. If you want the concrete underlying type, do a type assertion.
 
 Example:
 
