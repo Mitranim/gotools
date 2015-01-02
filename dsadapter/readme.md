@@ -56,7 +56,7 @@ Database adapter for Golang web applications using the GAE Datastore.
     * [Compute](#computeinterface)
     * [ToRecords](#torecordsinterface-record)
     * [RndId](#rndid-string)
-    * [Log](#loghttprequest-values-interface)
+    * [Log](#loghttprequest-interface)
     * [ErrorCode](#errorcodeerror-int)
   * [Errors](#errors)
 
@@ -74,7 +74,7 @@ In your Go files:
 import "github.com/Mitranim/gotools/dsadapter"
 ```
 
-After importing, you must call [`Setup()`](#setup) with a [config](#config-type). This generates an object that encapsulates configuration and state. Its methods include all of the package's API with the exception of constants. The package itself remains stateless. You can call `Setup()` multiple times to generate different `dsadapter.State` objects within the same application.
+After importing, you must call [`Setup()`](#setup) with a [config](#config-type). This generates an object that encapsulates configuration and state. Its methods include all of the package's API with the exception of constants and a few utility methods (see the reference). The package itself remains stateless. You can call `Setup()` multiple times to generate several isolated `dsadapter.State` objects within the same application.
 
 Example:
 
@@ -260,7 +260,7 @@ Verifies that the user associated with the given request has the rights to perfo
 ```golang
 func (this *Subscriber) Can(req *http.Request, code int) bool {
   // Only allowed to create (gross oversimplification)
-  if code == dsa.CodeCreate {
+  if code == dsadapter.CodeCreate {
     return true
   }
   return false
@@ -293,7 +293,7 @@ func (this *Engine) GetId() string   { return this.Id }
 func (this *Engine) SetId(id string) { this.Id = id }
 ```
 
-They're called in CRUD operations.
+They're used by `dsadapter` in CRUD operations.
 
 #### `Key(*http.Request, Record) *datastore.Key`
 
@@ -417,7 +417,7 @@ err = engine.Delete(req)
 
 #### Operation Codes
 
-`dsadapter` has four operation codes. They're published in the root of the package and are unavailable on a State.
+`dsadapter` has four operation codes. They're published in the root of the package: `dsadapter.CodeX`.
 
 ```golang
 const (
@@ -432,19 +432,19 @@ The codes are [untyped](https://golang.org/ref/spec#Constants) numeric constants
 
 #### `CodeCreate`
 
-Passed by `Record#Save()` if the record is new (`GetId() == ""`).
+Passed into `Record#Can()` by `Record#Save()` if the record is new (`GetId() == ""`).
 
 #### `CodeRead`
 
-Passed by collection `FindX` functions and by `Record#Read()`.
+Passed into `Record#Can()` by collection `FindX` functions and by `Record#Read()`.
 
 #### `CodeUpdate`
 
-Passed by `Record#Save()` if the record is not new (`GetId() != ""`).
+Passed into `Record#Can()` by `Record#Save()` if the record is not new (`GetId() != ""`).
 
 #### `CodeDelete`
 
-Passed by `Record#Delete()`.
+Passed into `Record#Can()` by `Record#Delete()`.
 
 ### Resources
 
@@ -468,7 +468,7 @@ type Quasar struct {
 Returns the map of resource strings to record types tied to the state object. Types are represented with nil pointers to values. It's used internally by other resource methods. Register your resources by assigning them to this map. Example:
 
 ```golang
-Resources()["engines"] = (*Engine)(nil)
+dsa.Resources()["engines"] = (*Engine)(nil)
 ```
 
 #### `NewRecordByResource(string) Record`
@@ -480,7 +480,7 @@ The gotcha here is that while the underlying value has a concrete type, the retu
 Example:
 
 ```golang
-Resources()["engines"] = (*Engine)(nil)
+dsa.Resources()["engines"] = (*Engine)(nil)
 
 // Get a new engine as Record
 engine := dsa.NewRecordByResource("engines")
@@ -505,7 +505,7 @@ The gotcha here is that the returned pointer has the type `interface{}`. [This a
 Example:
 
 ```golang
-Resources()["engines"] = (*Engine)(nil)
+dsa.Resources()["engines"] = (*Engine)(nil)
 
 // Get a new collection as interface{}
 engines := dsa.NewCollectionByResource("engines")
@@ -527,7 +527,7 @@ Takes a pointer to a collection, allocates a new empty Record of the same concre
 
 ### Populate
 
-`dsadapter` comes with a primitive populate routine to help populate the database with data mockups.
+`dsadapter` comes with a primitive populate routine to help fill the database with data mockups.
 
 #### `RegisterForPopulate(interface{})`
 
@@ -582,6 +582,8 @@ Takes any value and calls its `Compute()` method, if available. If the value is 
 
 #### `ToRecords(interface{}) []Record`
 
+This is published package-wide: `dsadapter.ToRecords`.
+
 Takes a slice of any type and converts it to a slice of records. If the value is not a slice, this returns nil. Non-Record values are ignored. If the original slice didn't contain any Records, the result will be zero length. This is used internally in `RegisterForPopulate()` to convert the given collection to a slice of records.
 
 Example:
@@ -594,7 +596,7 @@ engines := []*Engine{engine0, engine1}
 engi := interface{}(engines)
 
 // []Record version
-engs := dsa.ToRecords(engi)
+engs := dsadapter.ToRecords(engi)
 ```
 
 #### `RndId() string`

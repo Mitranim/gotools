@@ -59,7 +59,6 @@ type State interface {
 	// See `state-utils.go`.
 
 	Compute(interface{})
-	ToRecords(interface{}) []Record
 	RndId() string
 }
 

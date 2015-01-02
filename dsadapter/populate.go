@@ -28,7 +28,7 @@ func (this *StateInstance) Populate(req *http.Request) {
 // Registers the given records for populate.
 func (this *StateInstance) RegisterForPopulate(values interface{}) {
 	// Convert to the []Record type.
-	records := this.ToRecords(values)
+	records := ToRecords(values)
 
 	// Make sure we have at least one record.
 	if len(records) == 0 {
@@ -54,7 +54,7 @@ func (this *StateInstance) RegisterForPopulate(values interface{}) {
 
 		// Loop over and call the Delete method of each old record.
 		func() {
-			for _, rec := range this.ToRecords(oldRecs) {
+			for _, rec := range ToRecords(oldRecs) {
 				// Try to delete; abort the sequence if this fails.
 				err := rec.Delete(req)
 				if err != nil {

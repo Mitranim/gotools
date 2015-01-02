@@ -58,8 +58,9 @@ func RenderSetup(config RenderConfig) (RenderState, error) {
 
 // Functions
 var (
-	DsaLog = dsadapter.Log
-	RndId  = dsadapter.RndId
+	DsaLog    = dsadapter.Log
+	RndId     = dsadapter.RndId
+	ToRecords = dsadapter.ToRecords
 )
 
 // Constants
