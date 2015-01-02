@@ -22,15 +22,15 @@ Database adapter for Golang web applications using the GAE Datastore.
     * [Lifecycle Methods Example](#lifecycle-methods-example)
     * [CRUD Methods Example](#crud-methods-example)
     * [Utility Methods Example](#utility-methods-example)
-    * [Key](#key)
-    * [Save](#save)
-    * [Read](#read)
-    * [Delete](#delete)
-    * [FindOne](#findone)
+    * [Key](#keyhttprequest-record-datastorekey)
+    * [Save](#savehttprequest-record-error)
+    * [Read](#readhttprequest-record-error)
+    * [Delete](#deletehttprequest-record-error)
+    * [FindOne](#findonehttprequest-record-mapstringstring-error)
   * [Collection Operations](#collection-operations)
-    * [Find](#find)
-    * [FindAll](#findall)
-    * [FindByQuery](#findbyquery)
+    * [Find](#findhttprequest-interface-mapstringstring-int-error)
+    * [FindAll](#findallhttprequest-interface-mapstringstring-error)
+    * [FindByQuery](#findbyqueryhttprequest-interface)
   * [Permissions](#permissions)
     * [Operation Codes](#operation-codes)
     * [CodeCreate](#codecreate)
@@ -39,22 +39,22 @@ Database adapter for Golang web applications using the GAE Datastore.
     * [CodeDelete](#codedelete)
   * [Resources](#resources)
     * [Resources](#resources)
-    * [NewRecordByResource](#newrecordbyresource)
-    * [NewCollectionByResource](#newcollectionbyresource)
-    * [SliceOf](#sliceof)
-    * [NewRecordFromCollection](#newrecordfromcollection)
+    * [NewRecordByResource](#newrecordbyresourcestring-record)
+    * [NewCollectionByResource](#newcollectionbyresourcestring-interface)
+    * [SliceOf](#sliceofinterface-interface)
+    * [NewRecordFromCollection](#newrecordfromcollectioninterface-record-error)
   * [Populate](#populate)
-    * [RegisterForPopulate](#registerforpopulate)
-    * [Populate](#populate)
+    * [RegisterForPopulate](#registerforpopulateinterface)
+    * [Populate](#populatehttprequest)
   * [Setup](#setup)
     * [Config type](#config-type)
-    * [Setup](#setup)
+    * [Setup](#setupconfig-error)
   * [Utilities](#utilities)
-    * [Compute](#compute)
-    * [ErrorCode](#errorcode)
-    * [RndId](#rndid)
-    * [Log](#log)
-    * [ToRecords](#torecords)
+    * [Compute](#computeinterface)
+    * [ErrorCode](#errorcodeerror-int)
+    * [RndId](#rndid-string)
+    * [Log](#loginterface)
+    * [ToRecords](#torecordsinterface-record)
   * [Errors](#errors)
 
 ## Installation
@@ -206,7 +206,7 @@ func (this *Engine) SetId(id string) { this.Id = id }
 
 They're called in CRUD operations.
 
-#### `Key(\*http.Request, Record) \*datastore.Key`
+#### `Key(*http.Request, Record) *datastore.Key`
 
 Creates a Datastore key for the given Record. `Record#Kind()` is called to provide the Datastore kind, and `Record#GetId()` is called to provide the string id for the key. The numeric id associated with a key is always 0. The parent key is always nil.
 
@@ -231,7 +231,7 @@ err := engine.Save(req)
 
 Be aware that you can't patch a Datastore entity by saving a struct with only _some_ of its fields under the same key. When a struct is created, omitted fields are initialised to zero values. If saved under the same key as an existing entity, it will overwrite it, deleting the existing fields. When updating an entity, you must first read it from the Datastore, update its fields, then save it.
 
-#### `Read(\*http.Request, Record) error`
+#### `Read(*http.Request, Record) error`
 
 Generic read method for Record types. Reads a record from the Datastore by its kind and id. Example usage:
 
@@ -244,7 +244,7 @@ err := engine.Read(req)
 // engine -> {Id: "3720274029858504238", Name: "Zugelgeheiner"}
 ```
 
-#### `Delete(\*http.Request, Record) error`
+#### `Delete(*http.Request, Record) error`
 
 Generic delete method for Record types. Deletes a record from the Datastore by its kind and id. Example usage:
 
@@ -255,7 +255,7 @@ engine := &Engine{Id: "3720274029858504238"}
 err := engine.Delete(req)
 ```
 
-#### `FindOne(\*http.Request, Record, map[string]string) error`
+#### `FindOne(*http.Request, Record, map[string]string) error`
 
 Attempts to find one record of the given type by the given parameters and write it to the destination record passed in the function call. The passed record must be a pointer. This is essentially a convenience alias for `FindAll` that writes the result to a record instead of a collection.
 
@@ -271,7 +271,7 @@ err := FindOne(req, engine, map[string]string{"Name": "Zugelgeheiner"})
 
 ### Collection Operations
 
-#### `Find(\*http.Request, interface{}, map[string]string, int) error`
+#### `Find(*http.Request, interface{}, map[string]string, int) error`
 
 Parameters:
 
@@ -292,11 +292,11 @@ err := Find(req, engines, nil, 2)
 // engines -> &[]*Engine{(*Engine)(0xc2103fa500), (*Engine)(0xc2103fa5a0)}
 ```
 
-#### `FindAll(\*http.Request, interface{}, map[string]string) error`
+#### `FindAll(*http.Request, interface{}, map[string]string) error`
 
 Alias of `Find` with 0 limit.
 
-#### `FindByQuery(\*http.Request, interface{})`
+#### `FindByQuery(*http.Request, interface{})`
 
 Alias of `Find` with 0 limit, where `params` are automatically taken from the `req.URL.Query`.
 
