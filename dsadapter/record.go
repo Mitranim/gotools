@@ -90,8 +90,9 @@ func Save(req *http.Request, record Record) error {
 	// If the record is new, check the `create` permission.
 	if record.GetId() == "" && !record.Can(req, CodeCreate) {
 		return err403
-		// Otherwise check for update permission.
-	} else if !record.Can(req, CodeUpdate) {
+	}
+	// Otherwise check for update permission.
+	if record.GetId() != "" && !record.Can(req, CodeUpdate) {
 		return err403
 	}
 
