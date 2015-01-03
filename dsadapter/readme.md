@@ -54,8 +54,8 @@ Database adapter for Golang web applications using the GAE Datastore.
     * [Setup](#setupconfig-error)
   * [Utilities](#utilities)
     * [Compute](#computeinterface)
-    * [ToRecords](#torecordsinterface-record)
     * [RndId](#rndid-string)
+    * [ToRecords](#torecordsinterface-record)
     * [Log](#loghttprequest-interface)
     * [ErrorCode](#errorcodeerror-int)
   * [Errors](#errors)
@@ -580,6 +580,10 @@ Returns a new State object encapsulating the given configuration, with its own r
 
 Takes any value and calls its `Compute()` method, if available. If the value is a slice, loops over it and calls the `Compute()` method on each element, if possible. This is called automatically after reading a record or collection from the Datastore to recalculate computed properties.
 
+#### `RndId() string`
+
+Generates a random string id. This is used by default to make random ids for new records when saving them. You can override it by passing a custom `RndId` value in a `Setup()` call.
+
 #### `ToRecords(interface{}) []Record`
 
 This is published package-wide: `dsadapter.ToRecords`.
@@ -598,10 +602,6 @@ engi := interface{}(engines)
 // []Record version
 engs := dsadapter.ToRecords(engi)
 ```
-
-#### `RndId() string`
-
-Generates a random string id. This is used by default to make random ids for new records when saving them. You can override it by passing a custom `RndId` value in a `Setup()` call.
 
 #### `Log(*http.Request, ...interface{})`
 

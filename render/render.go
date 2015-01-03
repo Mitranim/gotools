@@ -6,11 +6,7 @@ import (
 	// Standard
 	"html/template"
 	"strings"
-	// Third party
-	"github.com/Mitranim/gotools/utils"
 )
-
-/********************************** Methods **********************************/
 
 /**
  * Shorthand rendering method. Renders the page at the given path,
@@ -143,27 +139,4 @@ func (this *StateInstance) RenderError(err error, data map[string]interface{}) (
 	}
 
 	return
-}
-
-/********************************** Private **********************************/
-
-// Renders the given template at the given path or returns an error.
-func renderAt(temp *template.Template, path string, data map[string]interface{}) ([]byte, error) {
-	// Check for nil map.
-	if data == nil {
-		data = map[string]interface{}{}
-	}
-
-	// Mark path in data.
-	if str, _ := data["path"].(string); str == "" {
-		data["path"] = path
-	}
-
-	wr := new(utils.WR)
-	err := temp.ExecuteTemplate(wr, path, data)
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(*wr), nil
 }

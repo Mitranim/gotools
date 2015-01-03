@@ -9,8 +9,8 @@ import (
 )
 
 // If the given value is non-nil and has a computer interface, this calls its
-// Compute method. If the given value is a slice of computers, this calls the
-// Compute method on each element.
+// Compute method. If the given value is a slice of computers, this calls each
+// element's Compute method.
 func (this *StateInstance) Compute(value interface{}) {
 	if value == nil {
 		return
@@ -58,6 +58,7 @@ func (this *StateInstance) RndId() string {
 func (this *StateInstance) log(req *http.Request, values ...interface{}) {
 	if this.config.Logger != nil {
 		this.config.Logger(req, values...)
+		return
 	}
 	Log(req, values...)
 }

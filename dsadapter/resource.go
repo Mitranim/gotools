@@ -5,6 +5,7 @@ package dsadapter
 import (
 	// Standard
 	"reflect"
+
 	// Third party
 	"github.com/Mitranim/gotools/utils"
 )

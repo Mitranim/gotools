@@ -3,6 +3,7 @@ package render
 // Configuration.
 
 import (
+	// Standard
 	"html/template"
 )
 
