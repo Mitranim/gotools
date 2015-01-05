@@ -7,7 +7,7 @@ import (
 
 // Generates a map of base template funcs that closure a reference to a state
 // object.
-func makeTemplateFuncs(state *StateInstance) template.FuncMap {
+func makeTemplateFuncs(state *stateInstance) template.FuncMap {
 	return template.FuncMap{
 
 		// Modifies the title of the data object, appending the given string. Always

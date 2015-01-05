@@ -20,7 +20,7 @@ import (
  *   // Register the type as a resource.
  *   dsadapter.Resources()["users"] = (*User)(nil)
  */
-func (this *StateInstance) Resources() map[string]Record {
+func (this *stateInstance) Resources() map[string]Record {
 	if this.resources == nil {
 		this.resources = map[string]Record{}
 	}
@@ -30,7 +30,7 @@ func (this *StateInstance) Resources() map[string]Record {
 // If there is a record type registered under the given resource name, this
 // allocates a zero value of that type and returns a pointer to it masquerading
 // as Record. If there isn't a matching type, this returns nil.
-func (this *StateInstance) NewRecordByResource(name string) Record {
+func (this *stateInstance) NewRecordByResource(name string) Record {
 	// Grab a reference record.
 	record := this.Resources()[name]
 	if record == nil {
@@ -44,7 +44,7 @@ func (this *StateInstance) NewRecordByResource(name string) Record {
 // If there is a record type registered under the given resource name, this
 // allocates a nil slice of that type and returns a pointer to it masquerading
 // as interface{}. If there isn't a matching type, this returns nil.
-func (this *StateInstance) NewCollectionByResource(name string) interface{} {
+func (this *stateInstance) NewCollectionByResource(name string) interface{} {
 	// Grab a reference record.
 	record := this.Resources()[name]
 	if record == nil {
@@ -56,13 +56,13 @@ func (this *StateInstance) NewCollectionByResource(name string) interface{} {
 
 // Allocates a zero-length non-nil slice of the given value's type, takes its
 // pointer, and returns the pointer masquerading as interface{}.
-func (this *StateInstance) SliceOf(value interface{}) interface{} {
+func (this *stateInstance) SliceOf(value interface{}) interface{} {
 	return reflect.New(reflect.SliceOf(reflect.TypeOf(value))).Interface()
 }
 
 // Takes a pointer to a collection and returns a new Record of its type. Use
 // SliceOf for the (roughly) opposite effect.
-func (this *StateInstance) NewRecordFromCollection(collection interface{}) (Record, error) {
+func (this *stateInstance) NewRecordFromCollection(collection interface{}) (Record, error) {
 	// We're going to return this error if anything goes wrong.
 	err := utils.Error("a collection must be a slice of a struct pointer type that implements Record")
 

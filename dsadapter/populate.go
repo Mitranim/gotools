@@ -9,7 +9,7 @@ import (
 
 // Returns the map of Datastore kind strings to populate funcs registered with
 // RegisterForPopulate. Creates the map if it's nil.
-func (this *StateInstance) PopulateFuncs() map[string]func(*http.Request) {
+func (this *stateInstance) PopulateFuncs() map[string]func(*http.Request) {
 	if this.populateFuncs == nil {
 		this.populateFuncs = map[string]func(*http.Request){}
 	}
@@ -19,14 +19,14 @@ func (this *StateInstance) PopulateFuncs() map[string]func(*http.Request) {
 // Loops over each registered populate func and calls it. The App Engine library
 // panics if we do this asynchronously with goroutines, thus the synchrony. We
 // could probably get around this by passing around the same GAE context.
-func (this *StateInstance) Populate(req *http.Request) {
+func (this *stateInstance) Populate(req *http.Request) {
 	for _, fn := range this.PopulateFuncs() {
 		fn(req)
 	}
 }
 
 // Registers the given records for populate.
-func (this *StateInstance) RegisterForPopulate(values interface{}) {
+func (this *stateInstance) RegisterForPopulate(values interface{}) {
 	// Convert to the []Record type.
 	records := ToRecords(values)
 

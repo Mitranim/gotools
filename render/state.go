@@ -35,10 +35,10 @@ type State interface {
 	RenderError(error, map[string]interface{}) ([]byte, error)
 }
 
-/******************************* StateInstance *******************************/
+/******************************* stateInstance *******************************/
 
 // A type that implements State.
-type StateInstance struct {
+type stateInstance struct {
 	temps  *template.Template
 	files  map[string][]byte
 	config Config
@@ -46,13 +46,13 @@ type StateInstance struct {
 
 /*------------------------------ Stored Values ------------------------------*/
 
-func (this *StateInstance) Templates() *template.Template { return this.temps }
-func (this *StateInstance) Files() map[string][]byte      { return this.files }
-func (this *StateInstance) Config() Config                { return this.config }
+func (this *stateInstance) Templates() *template.Template { return this.temps }
+func (this *stateInstance) Files() map[string][]byte      { return this.files }
+func (this *stateInstance) Config() Config                { return this.config }
 
 /*--------------------------------- Private ---------------------------------*/
 
 // Adapter methods for generic functions. See their respective documentation.
 
-func (this *StateInstance) log(values ...interface{})  { log(this, values...) }
-func (this *StateInstance) errorPath(err error) string { return errorPath(this, err) }
+func (this *stateInstance) log(values ...interface{})  { log(this, values...) }
+func (this *stateInstance) errorPath(err error) string { return errorPath(this, err) }

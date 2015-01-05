@@ -217,14 +217,14 @@ func split(path string) []string {
 
 // Returns true if the user has passed a `DevChecker` in the config and the
 // checker returns true.
-func isDev(state *StateInstance) bool {
+func isDev(state *stateInstance) bool {
 	return state.config.DevChecker != nil && state.config.DevChecker()
 }
 
 // Returns an inlined file at the given path (if available) or an empty string,
 // registering it in the given data map and converting to `template.HTML`.
 // Further calls with the same path and data map return an empty string.
-func inline(state *StateInstance, path string, data map[string]interface{}) template.HTML {
+func inline(state *stateInstance, path string, data map[string]interface{}) template.HTML {
 	// Make sure we have an inline cache.
 	cache, _ := data["inlined"].(map[string]bool)
 	if cache == nil {
@@ -254,7 +254,7 @@ func inline(state *StateInstance, path string, data map[string]interface{}) temp
 }
 
 // Inlines the given file as a stylesheet, enclosing it in tags.
-func inlineStyle(state *StateInstance, path string, data map[string]interface{}) template.HTML {
+func inlineStyle(state *stateInstance, path string, data map[string]interface{}) template.HTML {
 	text := inline(state, path, data)
 	if text == "" {
 		return ""
@@ -263,7 +263,7 @@ func inlineStyle(state *StateInstance, path string, data map[string]interface{})
 }
 
 // Inlines the given file as a script, enclosing it in tags.
-func inlineScript(state *StateInstance, path string, data map[string]interface{}) template.HTML {
+func inlineScript(state *stateInstance, path string, data map[string]interface{}) template.HTML {
 	text := inline(state, path, data)
 	if text == "" {
 		return ""
@@ -272,7 +272,7 @@ func inlineScript(state *StateInstance, path string, data map[string]interface{}
 }
 
 // Logs stuff using a logger from a config, if any.
-func log(state *StateInstance, values ...interface{}) {
+func log(state *stateInstance, values ...interface{}) {
 	if state.config.Logger != nil {
 		state.config.Logger(values...)
 	}
@@ -281,7 +281,7 @@ func log(state *StateInstance, values ...interface{}) {
 // Converts the given error to a template path using a CodePath func passed in a
 // config, if any. If it's omitted, uses a direct int to string conversion: 404
 // -> "404".
-func errorPath(state *StateInstance, err error) string {
+func errorPath(state *stateInstance, err error) string {
 	code := ErrorCode(err)
 	if state.config.CodePath != nil {
 		return state.config.CodePath(code)

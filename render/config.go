@@ -42,7 +42,7 @@ type Config struct {
 // state object. An error is returned if any part of the setup process fails.
 func Setup(config Config) (State, error) {
 	// Create a state object to encapsulate the configuration.
-	state := &StateInstance{
+	state := &stateInstance{
 		temps:  template.New(""),
 		files:  map[string][]byte{},
 		config: config,

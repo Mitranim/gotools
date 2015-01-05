@@ -11,7 +11,7 @@ import (
 // If the given value is non-nil and has a computer interface, this calls its
 // Compute method. If the given value is a slice of computers, this calls each
 // element's Compute method.
-func (this *StateInstance) Compute(value interface{}) {
+func (this *stateInstance) Compute(value interface{}) {
 	if value == nil {
 		return
 	}
@@ -45,7 +45,7 @@ func (this *StateInstance) Compute(value interface{}) {
 
 // Returns the result of calling the RndId function from the config, if it's
 // defined. Otherwise uses the built-in generator.
-func (this *StateInstance) RndId() string {
+func (this *stateInstance) RndId() string {
 	if this.config.RndId != nil {
 		return this.config.RndId()
 	}
@@ -55,7 +55,7 @@ func (this *StateInstance) RndId() string {
 /*--------------------------------- Private ---------------------------------*/
 
 // Logs using the passed or the default logger.
-func (this *StateInstance) log(req *http.Request, values ...interface{}) {
+func (this *stateInstance) log(req *http.Request, values ...interface{}) {
 	if this.config.Logger != nil {
 		this.config.Logger(req, values...)
 		return

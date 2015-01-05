@@ -27,7 +27,7 @@ type Config struct {
 // the setup process fails. The state object's methods comprise most of the
 // public API of the package.
 func Setup(config Config) State {
-	return &StateInstance{
+	return &stateInstance{
 		resources:     map[string]Record{},
 		populateFuncs: map[string]func(*http.Request){},
 		config:        config,

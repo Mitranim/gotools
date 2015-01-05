@@ -17,7 +17,7 @@ import (
 // given params and limited to the given count. The records are added to the
 // collection. The collection may be created with reflect like so:
 // reflect.New(<slice type>).Interface(). Zero or negative limit means no limit.
-func (this *StateInstance) Find(req *http.Request, collection interface{}, params map[string]string, limit int) error {
+func (this *stateInstance) Find(req *http.Request, collection interface{}, params map[string]string, limit int) error {
 	gc := appengine.NewContext(req)
 
 	// Make a Record of this collection's type to get its Datastore kind.
@@ -60,12 +60,12 @@ func (this *StateInstance) Find(req *http.Request, collection interface{}, param
 
 // Takes a pointer to a Collection and finds records for it, filtered by the
 // given params.
-func (this *StateInstance) FindAll(req *http.Request, collection interface{}, params map[string]string) error {
+func (this *stateInstance) FindAll(req *http.Request, collection interface{}, params map[string]string) error {
 	return this.Find(req, collection, params, 0)
 }
 
 // Takes a pointer to a Collection and finds records for it, filtered by the URL
 // query params (if any).
-func (this *StateInstance) FindByQuery(req *http.Request, collection interface{}) error {
+func (this *stateInstance) FindByQuery(req *http.Request, collection interface{}) error {
 	return this.Find(req, collection, toParams(req.URL.Query()), 0)
 }

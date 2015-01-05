@@ -23,7 +23,7 @@ import (
  *
  * Also see the renderError comment.
  */
-func (this *StateInstance) Render(path string, data map[string]interface{}) ([]byte, error) {
+func (this *stateInstance) Render(path string, data map[string]interface{}) ([]byte, error) {
 	bytes, err := this.RenderPage(path, data)
 
 	if err != nil {
@@ -36,7 +36,7 @@ func (this *StateInstance) Render(path string, data map[string]interface{}) ([]b
 // Takes a path to a page and a data map. Renders the page and, hierarchically,
 // all layouts enclosing it, up to the root, passing the data map to each
 // template.
-func (this *StateInstance) RenderPage(path string, data map[string]interface{}) ([]byte, error) {
+func (this *stateInstance) RenderPage(path string, data map[string]interface{}) ([]byte, error) {
 	// Adjust and validate path.
 	path, err := parsePath(this.temps, path)
 	if err != nil {
@@ -68,7 +68,7 @@ func (this *StateInstance) RenderPage(path string, data map[string]interface{}) 
 }
 
 // Renders a template at the given path, ignoring the page hierarchy.
-func (this *StateInstance) RenderOne(path string, data map[string]interface{}) ([]byte, error) {
+func (this *stateInstance) RenderOne(path string, data map[string]interface{}) ([]byte, error) {
 	return renderAt(this.temps, path, data)
 }
 
@@ -90,7 +90,7 @@ func (this *StateInstance) RenderOne(path string, data map[string]interface{}) (
  * is not to signal a complete failure, but to carry the information about the
  * character of the problem (if any) that occurred in the process.
  */
-func (this *StateInstance) RenderError(err error, data map[string]interface{}) (bytes []byte, lastErr error) {
+func (this *stateInstance) RenderError(err error, data map[string]interface{}) (bytes []byte, lastErr error) {
 	// Map of error codes that have occurred at least once.
 	codes := map[int]bool{}
 

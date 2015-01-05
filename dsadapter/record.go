@@ -21,7 +21,7 @@ import (
 // type, filtered by the given params. If a record is successfully found, it's
 // written to the destination, which must be a pointer. If not, an error if
 // returned.
-func (this *StateInstance) FindOne(req *http.Request, destination Record, params map[string]string) error {
+func (this *stateInstance) FindOne(req *http.Request, destination Record, params map[string]string) error {
 	// Make a matching collection.
 	collection := this.SliceOf(destination)
 
@@ -59,13 +59,13 @@ func (this *StateInstance) FindOne(req *http.Request, destination Record, params
 /************************** Record Method Adapters ***************************/
 
 // Returns a datastore key for the given record.
-func (this *StateInstance) Key(req *http.Request, record Record) *datastore.Key {
+func (this *stateInstance) Key(req *http.Request, record Record) *datastore.Key {
 	gc := appengine.NewContext(req)
 	return datastore.NewKey(gc, record.Kind(), record.GetId(), 0, nil)
 }
 
 // Reads the given record from the Datastore.
-func (this *StateInstance) Read(req *http.Request, record Record) error {
+func (this *stateInstance) Read(req *http.Request, record Record) error {
 	// Check for read permission.
 	if !record.Can(req, CodeRead) {
 		return err403
@@ -86,7 +86,7 @@ func (this *StateInstance) Read(req *http.Request, record Record) error {
 }
 
 // Saves the given record to the Datastore.
-func (this *StateInstance) Save(req *http.Request, record Record) error {
+func (this *stateInstance) Save(req *http.Request, record Record) error {
 	// If the record is new, check the `create` permission.
 	if record.GetId() == "" && !record.Can(req, CodeCreate) {
 		return err403
@@ -113,7 +113,7 @@ func (this *StateInstance) Save(req *http.Request, record Record) error {
 }
 
 // Deletes the given record from the Datastore.
-func (this *StateInstance) Delete(req *http.Request, record Record) error {
+func (this *stateInstance) Delete(req *http.Request, record Record) error {
 	// Check for delete permission.
 	if !record.Can(req, CodeDelete) {
 		return err403

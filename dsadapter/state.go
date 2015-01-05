@@ -62,10 +62,10 @@ type State interface {
 	RndId() string
 }
 
-/******************************* StateInstance *******************************/
+/******************************* stateInstance *******************************/
 
 // A type that implements State.
-type StateInstance struct {
+type stateInstance struct {
 	resources     map[string]Record
 	populateFuncs map[string]func(*http.Request)
 	config        Config
