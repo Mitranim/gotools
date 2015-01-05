@@ -95,7 +95,7 @@ func readTemplates(dir string, temp *template.Template) error {
 
 // Traverses the inline file directory and reads each file into memory for
 // future inlining. Returns an error if anything goes wrong.
-func readInline(dir string, inlineFiles map[string]template.HTML) error {
+func readInline(dir string, files map[string][]byte) error {
 	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
@@ -111,7 +111,7 @@ func readInline(dir string, inlineFiles map[string]template.HTML) error {
 		path = dePrefix(dir, path)
 
 		// Put into map.
-		inlineFiles[path] = template.HTML(bytes)
+		files[path] = bytes
 
 		return nil
 	})
@@ -215,9 +215,15 @@ func split(path string) []string {
 
 /*********************************** Other ***********************************/
 
+// Returns true if the user has passed a `DevChecker` in the config and the
+// checker returns true.
+func isDev(state *StateInstance) bool {
+	return state.config.DevChecker != nil && state.config.DevChecker()
+}
+
 // Returns an inlined file at the given path (if available) or an empty string,
-// registering it in the given data map. Further calls with the same path and
-// data map return an empty string.
+// registering it in the given data map and converting to `template.HTML`.
+// Further calls with the same path and data map return an empty string.
 func inline(state *StateInstance, path string, data map[string]interface{}) template.HTML {
 	// Make sure we have an inline cache.
 	cache, _ := data["inlined"].(map[string]bool)
@@ -227,16 +233,16 @@ func inline(state *StateInstance, path string, data map[string]interface{}) temp
 
 	// Check if we're in a development environment. If true, re-read the file from
 	// the disk.
-	if state.config.DevChecker != nil && state.config.DevChecker() {
+	if isDev(state) {
 		bytes, err := ioutil.ReadFile(state.config.InlineDir + "/" + path)
 		if err == nil {
-			state.inlineFiles[path] = template.HTML(bytes)
+			state.files[path] = bytes
 		}
 	}
 
 	// If it's already been inlined or if there's no such file, return an empty
 	// string.
-	str, ok := state.inlineFiles[path]
+	bytes, ok := state.files[path]
 	if cache[path] || !ok {
 		return ""
 	}
@@ -244,7 +250,25 @@ func inline(state *StateInstance, path string, data map[string]interface{}) temp
 	// Register and inline the file.
 	cache[path] = true
 	data["inlined"] = cache
-	return str
+	return template.HTML(bytes)
+}
+
+// Inlines the given file as a stylesheet, enclosing it in tags.
+func inlineStyle(state *StateInstance, path string, data map[string]interface{}) template.HTML {
+	text := inline(state, path, data)
+	if text == "" {
+		return ""
+	}
+	return "<style>\n" + text + "\n</style>"
+}
+
+// Inlines the given file as a script, enclosing it in tags.
+func inlineScript(state *StateInstance, path string, data map[string]interface{}) template.HTML {
+	text := inline(state, path, data)
+	if text == "" {
+		return ""
+	}
+	return `<script type="text/javascript">` + "\n" + text + "\n" + `</script>`
 }
 
 // Logs stuff using a logger from a config, if any.

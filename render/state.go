@@ -18,12 +18,10 @@ type State interface {
 
 	/*----------------------------- Stored Values -----------------------------*/
 
-	// Returns the group of nested pages templates.
-	Pages() *template.Template
-	// Returns the group of standalone templates.
-	Standalone() *template.Template
+	// Returns the templates group.
+	Templates() *template.Template
 	// Returns the map of inline files.
-	InlineFiles() map[string]template.HTML
+	Files() map[string][]byte
 	// Returns the configuration object.
 	Config() Config
 
@@ -33,7 +31,7 @@ type State interface {
 
 	Render(string, map[string]interface{}) ([]byte, error)
 	RenderPage(string, map[string]interface{}) ([]byte, error)
-	RenderStandalone(string, map[string]interface{}) ([]byte, error)
+	RenderOne(string, map[string]interface{}) ([]byte, error)
 	RenderError(error, map[string]interface{}) ([]byte, error)
 }
 
@@ -41,18 +39,16 @@ type State interface {
 
 // A type that implements State.
 type StateInstance struct {
-	pages       *template.Template
-	standalone  *template.Template
-	inlineFiles map[string]template.HTML
-	config      Config
+	temps  *template.Template
+	files  map[string][]byte
+	config Config
 }
 
 /*------------------------------ Stored Values ------------------------------*/
 
-func (this *StateInstance) Pages() *template.Template             { return this.pages }
-func (this *StateInstance) Standalone() *template.Template        { return this.standalone }
-func (this *StateInstance) InlineFiles() map[string]template.HTML { return this.inlineFiles }
-func (this *StateInstance) Config() Config                        { return this.config }
+func (this *StateInstance) Templates() *template.Template { return this.temps }
+func (this *StateInstance) Files() map[string][]byte      { return this.files }
+func (this *StateInstance) Config() Config                { return this.config }
 
 /*--------------------------------- Private ---------------------------------*/
 

@@ -38,7 +38,7 @@ func (this *StateInstance) Render(path string, data map[string]interface{}) ([]b
 // template.
 func (this *StateInstance) RenderPage(path string, data map[string]interface{}) ([]byte, error) {
 	// Adjust and validate path.
-	path, err := parsePath(this.pages, path)
+	path, err := parsePath(this.temps, path)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (this *StateInstance) RenderPage(path string, data map[string]interface{}) 
 
 	// Render the template into each enclosing layout.
 	for _, pt := range paths {
-		bytes, err := renderAt(this.pages, pt, data)
+		bytes, err := renderAt(this.temps, pt, data)
 		if err != nil {
 			return nil, err
 		}
@@ -67,9 +67,9 @@ func (this *StateInstance) RenderPage(path string, data map[string]interface{}) 
 	return []byte(html), nil
 }
 
-// Renders a standalone template at the given path.
-func (this *StateInstance) RenderStandalone(path string, data map[string]interface{}) ([]byte, error) {
-	return renderAt(this.standalone, path, data)
+// Renders a template at the given path, ignoring the page hierarchy.
+func (this *StateInstance) RenderOne(path string, data map[string]interface{}) ([]byte, error) {
+	return renderAt(this.temps, path, data)
 }
 
 /**
@@ -111,7 +111,7 @@ func (this *StateInstance) RenderError(err error, data map[string]interface{}) (
 		if codes[code] {
 			// Double 500 -> fall back on bytes.
 			if code == 500 {
-				log(this, "internal rendering error")
+				log(this, "internal rendering error:", err)
 				// Use the provided UltimateFailure data, if possible.
 				if len(this.config.UltimateFailure) > 0 {
 					bytes = this.config.UltimateFailure

@@ -15,10 +15,8 @@ type Config struct {
 	Delims []string
 	// Funcs map for templates.
 	Funcs template.FuncMap
-	// Directory with hierarchical pages for rendering.
-	PageDir string
-	// Directory with standalone pages for rendering.
-	StandaloneDir string
+	// Directory with hierarchical templates for rendering.
+	TemplateDir string
 	// Directory with files to read into memory for inlining.
 	InlineDir string
 	// Function to use for converting integer http status codes to template paths.
@@ -45,46 +43,35 @@ type Config struct {
 func Setup(config Config) (State, error) {
 	// Create a state object to encapsulate the configuration.
 	state := &StateInstance{
-		pages:       template.New(""),
-		standalone:  template.New(""),
-		inlineFiles: map[string]template.HTML{},
-		config:      config,
+		temps:  template.New(""),
+		files:  map[string][]byte{},
+		config: config,
 	}
 
 	// Set up delimiters.
 	if len(config.Delims) == 2 {
-		state.pages.Delims(config.Delims[0], config.Delims[1])
-		state.standalone.Delims(config.Delims[0], config.Delims[1])
+		state.temps.Delims(config.Delims[0], config.Delims[1])
 	}
 
 	// Set up default funcs.
 	funcs := makeTemplateFuncs(state)
-	state.pages.Funcs(funcs)
-	state.standalone.Funcs(funcs)
+	state.temps.Funcs(funcs)
 
 	// Set up user funcs.
 	if config.Funcs != nil {
-		state.pages.Funcs(config.Funcs)
-		state.standalone.Funcs(config.Funcs)
+		state.temps.Funcs(config.Funcs)
 	}
 
-	// Read page templates.
-	if config.PageDir != "" {
-		if err := readTemplates(config.PageDir, state.pages); err != nil {
-			return nil, err
-		}
-	}
-
-	// Read standalone templates.
-	if config.StandaloneDir != "" {
-		if err := readTemplates(config.StandaloneDir, state.standalone); err != nil {
+	// Read templates.
+	if config.TemplateDir != "" {
+		if err := readTemplates(config.TemplateDir, state.temps); err != nil {
 			return nil, err
 		}
 	}
 
 	// Read inline files.
 	if config.InlineDir != "" {
-		if err := readInline(config.InlineDir, state.inlineFiles); err != nil {
+		if err := readInline(config.InlineDir, state.files); err != nil {
 			return nil, err
 		}
 	}

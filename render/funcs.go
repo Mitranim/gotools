@@ -23,8 +23,7 @@ func makeTemplateFuncs(state *StateInstance) template.FuncMap {
 			return
 		},
 
-		// Includes the given standalone template only once during the lifetime of the
-		// &data.
+		// Includes the given template only once during the lifetime of the &data.
 		"import": func(path string, data map[string]interface{}) template.HTML {
 			// Make sure we have an import cache.
 			cache, _ := data["imported"].(map[string]bool)
@@ -38,7 +37,7 @@ func makeTemplateFuncs(state *StateInstance) template.FuncMap {
 			// Otherwise register and import it.
 			cache[path] = true
 			data["imported"] = cache
-			bytes, err := state.RenderStandalone(path, data)
+			bytes, err := state.RenderOne(path, data)
 			if err != nil {
 				return ""
 			}
@@ -52,20 +51,36 @@ func makeTemplateFuncs(state *StateInstance) template.FuncMap {
 
 		// Inlines the given file as a stylesheet.
 		"inlineStyle": func(path string, data map[string]interface{}) template.HTML {
-			text := inline(state, path, data)
-			if text == "" {
-				return ""
-			}
-			return "<style>\n" + text + "\n</style>"
+			return inlineStyle(state, path, data)
 		},
 
 		// Inlines the given file as a script.
 		"inlineScript": func(path string, data map[string]interface{}) template.HTML {
-			text := inline(state, path, data)
-			if text == "" {
+			return inlineScript(state, path, data)
+		},
+
+		// Inlines the given file only in production.
+		"inlineProd": func(path string, data map[string]interface{}) template.HTML {
+			if isDev(state) {
 				return ""
 			}
-			return `<script type="text/javascript">` + "\n" + text + "\n" + `</script>`
+			return inline(state, path, data)
+		},
+
+		// Inlines the given file as a stylesheet only in production.
+		"inlineStyleProd": func(path string, data map[string]interface{}) template.HTML {
+			if isDev(state) {
+				return ""
+			}
+			return inlineStyle(state, path, data)
+		},
+
+		// Inlines the given file as a script only in production.
+		"inlineScriptProd": func(path string, data map[string]interface{}) template.HTML {
+			if isDev(state) {
+				return ""
+			}
+			return inlineScript(state, path, data)
 		},
 	}
 }
