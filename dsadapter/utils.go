@@ -78,8 +78,8 @@ func RndId() string {
 // Republish the error-to-code converter.
 var ErrorCode = utils.ErrorCode
 
-// Logs to a GAE context with level `debug`.
+// Logs to a GAE context with level `info`.
 func Log(req *http.Request, values ...interface{}) {
 	gc := appengine.NewContext(req)
-	gc.Debugf(repeat("%v", len(values)), values...)
+	gc.Infof(repeat("%v", len(values)), values...)
 }

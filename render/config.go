@@ -32,7 +32,8 @@ type Config struct {
 	// each inline call. If true, the file to be inlined is re-read from the disk.
 	DevChecker func() bool
 	// Bytes to send when rendering fails completely and a hard-set message needs
-	// to be written. If omitted, the default err500ISE is used.
+	// to be written. If omitted, the default err500ISE is used (see `utils-
+	// private.go`).
 	UltimateFailure []byte
 }
 

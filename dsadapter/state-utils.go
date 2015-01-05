@@ -54,7 +54,7 @@ func (this *StateInstance) RndId() string {
 
 /*--------------------------------- Private ---------------------------------*/
 
-// Logs to a GAE context with level `debug`.
+// Logs using the passed or the default logger.
 func (this *StateInstance) log(req *http.Request, values ...interface{}) {
 	if this.config.Logger != nil {
 		this.config.Logger(req, values...)

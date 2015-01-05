@@ -3,6 +3,9 @@ package dsadapter
 // Private utilities.
 
 import (
+	// Standard
+	"fmt"
+	"reflect"
 	// Third party
 	"github.com/Mitranim/gotools/utils"
 )
@@ -43,4 +46,16 @@ func repeat(str string, count int) (result string) {
 		}
 	}
 	return
+}
+
+// Prints expanded values to standard output. For development purposes.
+func prn(values ...interface{}) {
+	for _, value := range values {
+		if reflect.ValueOf(value).Kind() == reflect.String {
+			print(fmt.Sprintf("%v", value) + " ")
+		} else {
+			print(fmt.Sprintf("%#v", value) + " ")
+		}
+	}
+	println()
 }

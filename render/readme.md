@@ -8,6 +8,12 @@
 ## Installation
 ## API Reference
 
+Reminder to include a reference for data fields utilised internally:
+  * `content`
+  * `path`
+
+Reminder to include a reference for the default additional template funcs.
+
 ## Type gotchas
 
 The type used for data is `map[string]interface{}`. With a map like this, you can assign any values, and can safely reference them in templates, both by uppercase and lowercase keys.

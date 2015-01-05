@@ -163,18 +163,20 @@ func dePrefix(prefix, path string) string {
 	return path
 }
 
-// Asserts that a template's path is valid. A path is invalid when:
-// 1) there's no such template;
-// 2) the template's name begins with a $ (these names are reserved).
+// Asserts that a template's path is valid for page rendering. A path is
+// invalid when:
+//   1) there's no template under the name matching the path;
+//   2) the template's name begins with a $ (these are considered private).
 func parsePath(path string, temp *template.Template) (string, error) {
 	// If the path somehow ends with a slash, drop it.
 	if len(path) > 0 && path[len(path)-1:] == "/" {
 		path = path[:len(path)-1]
 	}
 
-	// Template and file names starting with $ are reserved for private use.
+	// Template and file names starting with $ are considered private.
 	words := strings.Split(path, "/")
-	if words[len(words)-1][:1] == "$" {
+
+	if words[len(words)-1] == "" || words[len(words)-1][:1] == "$" {
 		return path, err404
 	}
 

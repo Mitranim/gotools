@@ -205,10 +205,10 @@ type Record interface {
 
   /* CRUD */
 
-  // Reads self from Datastore by id.
-  Read(*http.Request) error
   // Saves self to Datastore.
   Save(*http.Request) error
+  // Reads self from Datastore by id.
+  Read(*http.Request) error
   // Deletes self from Datastore by id.
   Delete(*http.Request) error
 
@@ -231,7 +231,7 @@ These methods must be implemented by the user. They're automatically called at v
 
 ##### `Validate() map[string]string`
 
-Must validate own fields and return a map of fields to error messages. `len(errs) == 0` means no error. This method is called by `Record#Save()` before saving to the Datastore.
+Must validate own fields and return a map of fields to error messages. `len(record.Validate()) == 0` means no error. This method is called by `Record#Save()` before saving to the Datastore.
 
 ```golang
 func (this *Subscriber) Validate() map[string]string {
@@ -321,6 +321,8 @@ err := engine.Save(req)
 
 Be aware that you can't patch a Datastore entity by saving a struct with only _some_ of its fields under the same key. When a struct is created, omitted fields are initialised to zero values. If saved under the same key as an existing entity, it will overwrite it, deleting the existing fields. When updating an entity, you must first read it from the Datastore, update its fields, then save it.
 
+Returns error 403 if creating or updating (depending on the presence of the record's id) is not permitted per the record's `Can()` method.
+
 #### `Read(*http.Request, Record) error`
 
 Generic read method for Record types. Reads a record from the Datastore by its kind and id. Example usage:
@@ -335,6 +337,8 @@ err := engine.Read(req)
 // engine -> {Id: "3720274029858504238", Name: "Zugelgeheiner"}
 ```
 
+Returns error 403 if reading is not permitted per the record's `Can()` method, and error 404 if the record can't be found.
+
 #### `Delete(*http.Request, Record) error`
 
 Generic delete method for Record types. Deletes a record from the Datastore by its kind and id. Example usage:
@@ -346,6 +350,8 @@ engine := &Engine{Id: "3720274029858504238"}
 
 err := engine.Delete(req)
 ```
+
+Returns error 403 if deleting is not permitted per the record's `Can()` method, and error 404 if the record can't be found.
 
 #### `FindOne(*http.Request, Record, map[string]string) error`
 
@@ -360,6 +366,8 @@ err := dsa.FindOne(req, engine, map[string]string{"Name": "Zugelgeheiner"})
 
 // engine -> {Id: "3720274029858504238", Name: "Zugelgeheiner"}
 ```
+
+Returns error 403 if reading is not permitted per the record's `Can()` method, and error 404 if the record can't be found.
 
 ### Collection Operations
 
@@ -383,6 +391,8 @@ err := dsa.Find(req, engines, nil, 2)
 
 // engines -> &[]*Engine{(*Engine)(0xc2103fa500), (*Engine)(0xc2103fa5a0)}
 ```
+
+Returns error 403 if reading is not permitted per the `Can()` method of this collection's record type, and a Datastore error if reading fails.
 
 #### `FindAll(*http.Request, interface{}, map[string]string) error`
 
@@ -607,7 +617,7 @@ engs := dsadapter.ToRecords(engi)
 
 This is published package-wide: `dsadapter.Log`.
 
-A simple logging function. Logs the given values to an App Engine context with the status "debug", automatically `"%v"`'ing each value. Pass it into a `Setup()` call. (Logging is disabled otherwise.)
+A simple logging function. Logs the given values to an App Engine context with the status "info", automatically `"%v"`'ing each value. Pass it into a `Setup()` call. (Logging is disabled otherwise.)
 
 #### `ErrorCode(error) int`
 
