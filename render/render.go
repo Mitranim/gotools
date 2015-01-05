@@ -37,10 +37,15 @@ func (this *StateInstance) Render(path string, data map[string]interface{}) ([]b
 // all layouts enclosing it, up to the root, passing the data map to each
 // template.
 func (this *StateInstance) RenderPage(path string, data map[string]interface{}) ([]byte, error) {
-	// Validate and adjust path.
-	path, err := parsePath(path, this.pages)
+	// Adjust and validate path.
+	path, err := parsePath(this.pages, path)
 	if err != nil {
 		return nil, err
+	}
+
+	// Check for nil map.
+	if data == nil {
+		data = map[string]interface{}{}
 	}
 
 	// Build an array of nested template paths.
@@ -62,22 +67,9 @@ func (this *StateInstance) RenderPage(path string, data map[string]interface{}) 
 	return []byte(html), nil
 }
 
-// Renders a standalone template at the given path. Unlike pages, names of
-// standalones may begin with $.
+// Renders a standalone template at the given path.
 func (this *StateInstance) RenderStandalone(path string, data map[string]interface{}) ([]byte, error) {
 	return renderAt(this.standalone, path, data)
-}
-
-// Renders the given page template under the same rules as a standalone:
-//   1) page hierarchy is ignored (only the given path is rendered);
-//   2) names starting with `$...` are allowed.
-func (this *StateInstance) RenderPageIsolated(path string, data map[string]interface{}) ([]byte, error) {
-	// A template must exist.
-	if this.pages.Lookup(path) == nil {
-		return nil, err404
-	}
-
-	return renderAt(this.pages, path, data)
 }
 
 /**

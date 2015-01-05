@@ -27,6 +27,12 @@ const (
 
 // Renders the given template at the given path or returns an error.
 func renderAt(temp *template.Template, path string, data map[string]interface{}) ([]byte, error) {
+	// Adjust and validate path.
+	path, err := parsePath(temp, path)
+	if err != nil {
+		return nil, err
+	}
+
 	// Check for nil map.
 	if data == nil {
 		data = map[string]interface{}{}
@@ -38,7 +44,7 @@ func renderAt(temp *template.Template, path string, data map[string]interface{})
 	}
 
 	wr := new(utils.WR)
-	err := temp.ExecuteTemplate(wr, path, data)
+	err = temp.ExecuteTemplate(wr, path, data)
 	if err != nil {
 		return nil, err
 	}
@@ -119,27 +125,34 @@ func pathsToTemplates(path string) []string {
 }
 
 // Takes a path to a page and returns a slice of paths to consequtive
-// hierarchical templates, where directory roots correspond to $layout
+// hierarchical templates, where directory roots correspond to index
 // templates. The original path comes last. Example:
 //   blog/posts/my-post ->
-//   []string{"$layout", "blog/$layout", "blog/posts/$layout", "blog/posts/my-post"}
+//   []string{"index", "blog/index", "blog/posts/index", "blog/posts/my-post"}
+// If the file name (the last name) is literally named `index`, it's skipped;
+// its directory implicitly mandates this template.
 func makeTemplateHierarchy(path string) []string {
-	shards := strings.Split(path, "/")
+	names := split(path)
 
-	paths := []string{}
+	// Start at the implicit rootmost `index` layout and build the path list.
+	paths := []string{"index"}
 
-	// For directory names, append $layout identifier
-	for index := 0; index < len(shards)-1; index++ {
-		dir := strings.Join(shards[:index+1], "/")
-		layout := dir + "/$layout"
-		paths = append(paths, layout)
+	if len(names) == 0 {
+		return paths
 	}
 
-	// The last element is the original file path
-	paths = append(paths, path)
+	// Loop over the directory names (in other words, all names except the last)
+	// and build path names, as illustrated above.
+	for index := range names[:len(names)-1] {
+		dir := strings.Join(names[:index+1], "/")
+		path := dir + "/index"
+		paths = append(paths, path)
+	}
 
-	// Add root layout
-	paths = append([]string{"$layout"}, paths...)
+	// If the file name is not `index`, add its path.
+	if names[len(names)-1] != "index" {
+		paths = append(paths, names[len(names)-1])
+	}
 
 	return paths
 }
@@ -163,29 +176,41 @@ func dePrefix(prefix, path string) string {
 	return path
 }
 
-// Asserts that a template's path is valid for page rendering. A path is
-// invalid when:
-//   1) there's no template under the name matching the path;
-//   2) the template's name begins with a $ (these are considered private).
-func parsePath(path string, temp *template.Template) (string, error) {
-	// If the path somehow ends with a slash, drop it.
-	if len(path) > 0 && path[len(path)-1:] == "/" {
+// Adjusts the path by dropping starting and ending slashes and checks if the
+// path exists in the given template.
+func parsePath(temp *template.Template, path string) (string, error) {
+	// Drop starting slash, if any.
+	if len(path) > 0 && path[0] == '/' {
+		path = path[0:]
+	}
+
+	// Drop ending slash, if any.
+	if len(path) > 0 && path[len(path)-1] == '/' {
 		path = path[:len(path)-1]
 	}
 
-	// Template and file names starting with $ are considered private.
-	words := strings.Split(path, "/")
-
-	if words[len(words)-1] == "" || words[len(words)-1][:1] == "$" {
-		return path, err404
-	}
-
-	// A template must exist.
-	if temp.Lookup(path) == nil {
+	// Make sure the path is still non-zero and the template exists.
+	if len(path) == 0 || temp.Lookup(path) == nil {
 		return path, err404
 	}
 
 	return path, nil
+}
+
+// Clears a slice of strings from empty strings.
+func purify(paths []string) []string {
+	result := []string{}
+	for _, value := range paths {
+		if value != "" {
+			result = append(result, value)
+		}
+	}
+	return result
+}
+
+// Splits the given path into a slice of strings, removing empty strings.
+func split(path string) []string {
+	return purify(strings.Split(path, "/"))
 }
 
 /*********************************** Other ***********************************/
