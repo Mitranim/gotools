@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	// Third party
@@ -287,4 +288,33 @@ func errorPath(state *stateInstance, err error) string {
 		return state.config.CodePath(code)
 	}
 	return CodePath(code)
+}
+
+// Determines if the given link is active. Returns "active" if yes and ""
+// otherwise.
+func active(link string, data map[string]interface{}) string {
+	path, _ := data["path"].(string)
+	if len(link) == 0 || len(path) == 0 {
+		return ""
+	}
+	// Prepend with a slash.
+	if (link[0]) != '/' {
+		link = "/" + link
+	}
+	if (path[0]) != '/' {
+		path = "/" + path
+	}
+	// Define the pattern.
+	pattern := "^" + link + "/|^" + link + "$"
+	// Check for a match.
+	matched, err := regexp.Match(pattern, []byte(path))
+	if err != nil {
+		Log("-- unexpected error on pattern matching:", err)
+		return ""
+	}
+	// If path matches, return the `active` class, otherwise an empty string.
+	if matched {
+		return "active"
+	}
+	return ""
 }

@@ -103,33 +103,36 @@ func (this *stateInstance) RenderError(err error, data map[string]interface{}) (
 	 *  	the result plus the last non-nil error
 	 */
 
-	for err != nil {
+	for code := ErrorCode(err); err != nil && !codes[code]; codes[code] = true {
 		lastErr = err
-		code := ErrorCode(err)
-
-		// Repeated error code.
-		if codes[code] {
-			// Double 500 -> fall back on bytes.
-			if code == 500 {
-				log(this, "internal rendering error:", err)
-				// Use the provided UltimateFailure data, if possible.
-				if len(this.config.UltimateFailure) > 0 {
-					bytes = this.config.UltimateFailure
-					// Otherwise use the default message.
-				} else {
-					bytes = []byte(err500ISE)
-				}
-				break
-			}
-			// Non-500 -> convert to 500 to try to render the 500 page.
-			code = 500
-		}
-
-		// Register the code.
-		codes[code] = true
-
 		// Try to render the matching page.
 		bytes, err = this.RenderPage(this.errorPath(err), data)
+	}
+
+	if err == nil {
+		return
+	}
+
+	// At this point, any error is considered internal.
+	lastErr = err500ISE
+
+	// If 500 hasn't occurred yet, try to render it.
+	if !codes[500] {
+		bytes, err = this.RenderPage(this.errorPath(err), data)
+	}
+
+	if err == nil {
+		return
+	}
+
+	// If rendering of page 500 fails, we fall back on bytes.
+	this.log("internal rendering error:", err)
+	// Use the provided UltimateFailure data, if possible.
+	if len(this.config.UltimateFailure) > 0 {
+		bytes = this.config.UltimateFailure
+		// Otherwise use the default message.
+	} else {
+		bytes = []byte(err500ISE)
 	}
 
 	return

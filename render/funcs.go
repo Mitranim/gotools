@@ -44,6 +44,40 @@ func makeTemplateFuncs(state *stateInstance) template.FuncMap {
 			return template.HTML(bytes)
 		},
 
+		// Checks if the given link is active. If true, returns "active", else "".
+		"active": func(link string, data map[string]interface{}) string {
+			return active(link, data)
+		},
+
+		// Same as "active" but also includes the class attribute.
+		"act": func(link string, data map[string]interface{}) template.HTMLAttr {
+			act := active(link, data)
+			if len(act) == 0 {
+				return ""
+			}
+			return "class=\"active\""
+		},
+
+		// Prints a background-image style with the given src.
+		"bgImg": func(src string) template.HTMLAttr {
+			return template.HTMLAttr(`style="background-image: url(/img/` + src + `)"`)
+		},
+
+		// Same as bgImg but without the /img prefix.
+		"bgUrl": func(src string) template.HTMLAttr {
+			return template.HTMLAttr(`style="background-image: url(` + src + `)"`)
+		},
+
+		// Makes an opening tag from the given string.
+		"tag": func(name string) template.HTML {
+			return template.HTML("<" + name + ">")
+		},
+
+		// Makes a closing tag from the given string.
+		"untag": func(name string) template.HTML {
+			return template.HTML("</" + name + ">")
+		},
+
 		// Inlines the given file only once during the lifetime of the &data.
 		"inline": func(path string, data map[string]interface{}) template.HTML {
 			return inline(state, path, data)
