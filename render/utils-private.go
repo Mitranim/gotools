@@ -133,6 +133,9 @@ func pathsToTemplates(path string) []string {
 // If the file name (the last name) is literally named `index`, it's skipped;
 // its directory implicitly mandates this template.
 func makeTemplateHierarchy(path string) []string {
+	// Strip slashes.
+	path = strings.Trim(path, "/")
+
 	names := split(path)
 
 	// Start at the implicit rootmost `index` layout and build the path list.
@@ -152,7 +155,7 @@ func makeTemplateHierarchy(path string) []string {
 
 	// If the file name is not `index`, add its path.
 	if names[len(names)-1] != "index" {
-		paths = append(paths, names[len(names)-1])
+		paths = append(paths, path)
 	}
 
 	return paths
@@ -180,15 +183,8 @@ func dePrefix(prefix, path string) string {
 // Adjusts the path by dropping starting and ending slashes and checks if the
 // path exists in the given template.
 func parsePath(temp *template.Template, path string) (string, error) {
-	// Drop starting slash, if any.
-	if len(path) > 0 && path[0] == '/' {
-		path = path[0:]
-	}
-
-	// Drop ending slash, if any.
-	if len(path) > 0 && path[len(path)-1] == '/' {
-		path = path[:len(path)-1]
-	}
+	// Drop starting and ending slashes.
+	path = strings.Trim(path, "/")
 
 	// Make sure the path is still non-zero and the template exists.
 	if len(path) == 0 || temp.Lookup(path) == nil {
@@ -199,7 +195,7 @@ func parsePath(temp *template.Template, path string) (string, error) {
 }
 
 // Clears a slice of strings from empty strings.
-func purify(paths []string) []string {
+func compact(paths []string) []string {
 	result := []string{}
 	for _, value := range paths {
 		if value != "" {
@@ -211,7 +207,7 @@ func purify(paths []string) []string {
 
 // Splits the given path into a slice of strings, removing empty strings.
 func split(path string) []string {
-	return purify(strings.Split(path, "/"))
+	return compact(strings.Split(path, "/"))
 }
 
 /*********************************** Other ***********************************/
@@ -309,7 +305,6 @@ func active(link string, data map[string]interface{}) string {
 	// Check for a match.
 	matched, err := regexp.Match(pattern, []byte(path))
 	if err != nil {
-		Log("-- unexpected error on pattern matching:", err)
 		return ""
 	}
 	// If path matches, return the `active` class, otherwise an empty string.
@@ -317,4 +312,19 @@ func active(link string, data map[string]interface{}) string {
 		return "active"
 	}
 	return ""
+}
+
+// Prints the values and joins them with spaces.
+func join(values ...interface{}) (result string) {
+	for _, value := range values {
+		if result == "" {
+			result = fmt.Sprint(value)
+		} else {
+			val := fmt.Sprint(value)
+			if val != "" {
+				result += " " + val
+			}
+		}
+	}
+	return
 }

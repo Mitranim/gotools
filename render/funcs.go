@@ -68,9 +68,14 @@ func makeTemplateFuncs(state *stateInstance) template.FuncMap {
 			return template.HTMLAttr(`style="background-image: url(` + src + `)"`)
 		},
 
-		// Makes an opening tag from the given string.
-		"tag": func(name string) template.HTML {
-			return template.HTML("<" + name + ">")
+		// Makes an opening tag from the given string. May include additional
+		// attributes.
+		"tag": func(name string, attrs ...interface{}) template.HTML {
+			str := join(attrs...)
+			if str != "" {
+				str = " " + str
+			}
+			return template.HTML("<" + name + str + ">")
 		},
 
 		// Makes a closing tag from the given string.
