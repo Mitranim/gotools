@@ -14,7 +14,7 @@ type Record interface {
 	/*------------------------------- Lifecycle -------------------------------*/
 
 	// Must return a map of record fields to error messages.
-	Validate() map[string]string
+	Validate(*http.Request) map[string]string
 
 	// Modifies and adjusts properties. May change existing fields and create new
 	// ones. This must be called every time a record or a collection is read from

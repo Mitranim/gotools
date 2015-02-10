@@ -22,9 +22,9 @@ type Config struct {
 	// Function to use for converting integer http status codes to template paths.
 	// If omitted, the default CodePath function is used.
 	CodePath func(int) string
-	// Logging function to use on 500 errors. Pass render.Log to use the default.
-	// If omitted, no logging is done. Only works on runtimes that support logging
-	// to stdout.
+	// Logging function to use on 500 errors. Pass config.Log to use the default,
+	// which is effectively a wrapper for println(). Only works on runtimes that
+	// support logging to stdout.
 	Logger func(...interface{})
 	// Function to check if we're in a development environment. This is checked on
 	// each inline call. If true, the file to be inlined is re-read from the disk.

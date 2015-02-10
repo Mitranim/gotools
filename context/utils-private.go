@@ -20,12 +20,7 @@ const intentionalPanicMessage = "Panic() was called to terminate the caller rout
 
 // Checks if the given value is nil.
 func isNil(value interface{}) bool {
-	val := reflect.ValueOf(value)
-
-	// Indirect a pointer.
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
+	val := refValue(value)
 
 	// Only call IsNil on supported types.
 	switch val.Kind() {
@@ -52,4 +47,22 @@ func codePath(ct *ContextInstance, code int) string {
 		return ct.config.CodePath(code)
 	}
 	return utils.CodePath(code)
+}
+
+// Returns a reflect.Value of the given value. If the value is a pointer,
+// returns a reflect.Value of what it references.
+func refValue(value interface{}) reflect.Value {
+	val := reflect.ValueOf(value)
+	for val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	return val
+}
+
+// Logs the given error if it maps to code 500 and if the logging function is
+// defined.
+func log(ct *ContextInstance, err error) {
+	if ct.config.Logger != nil && ErrorCode(err) == 500 {
+		ct.config.Logger(err)
+	}
 }

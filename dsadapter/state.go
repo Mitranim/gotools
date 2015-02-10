@@ -23,9 +23,13 @@ type State interface {
 	// See `record.go`.
 
 	Key(*http.Request, Record) *datastore.Key
+
+	// CRUD
 	Read(*http.Request, Record) error
 	Save(*http.Request, Record) error
 	Delete(*http.Request, Record) error
+
+	// Query
 	FindOne(*http.Request, Record, map[string]string) error
 
 	/*------------------------- Collection Operations -------------------------*/

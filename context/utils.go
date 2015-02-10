@@ -22,6 +22,11 @@ type Config struct {
 	// Function to convert http error codes into template paths. If omitted, the
 	// default CodePath function is used for straight int-to-string conversion.
 	CodePath func(int) string
+
+	// Logging function to use on 500 errors. Pass config.Log to use the default,
+	// which is effectively a wrapper for println(). Only works on runtimes that
+	// support logging to stdout.
+	Logger func(...interface{})
 }
 
 /********************************* Utilities *********************************/
@@ -50,6 +55,9 @@ func Recover() {
 func Panic() {
 	panic(intentionalPanicMessage)
 }
+
+// Default logging function (only for runtimes that support logging to stdout).
+var Log = utils.Log
 
 // Converts an error to an http status code.
 var ErrorCode = utils.ErrorCode

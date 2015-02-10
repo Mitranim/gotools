@@ -197,7 +197,7 @@ type Record interface {
   /* Lifecycle */
 
   // Validates fields and maps them to error messages.
-  Validate() map[string]string
+  Validate(*http.Request) map[string]string
   // Recalculates properties.
   Compute()
   // Permits given operation.
@@ -229,12 +229,12 @@ The library's internal methods depend on the lifecycle and utility methods in th
 
 These methods must be implemented by the user. They're automatically called at various points in a record's lifecycle.
 
-##### `Validate() map[string]string`
+##### `Validate(*http.Request) map[string]string`
 
 Must validate own fields and return a map of fields to error messages. `len(record.Validate()) == 0` means no error. This method is called by `Record#Save()` before saving to the Datastore.
 
 ```golang
-func (this *Subscriber) Validate() map[string]string {
+func (this *Subscriber) Validate(req *http.Request) map[string]string {
   if this.Email == "" {
     return map[string]string{"Email": "Please provide a valid email."}
   }

@@ -38,12 +38,7 @@ const (
 // slice, this returns nil. Non-Record elements are ignored. The result is not
 // guaranteed to have the same length as the original.
 func ToRecords(value interface{}) []Record {
-	val := reflect.ValueOf(value)
-
-	// Deference pointer, if any.
-	for val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
+	val := refValue(value)
 
 	// Make sure we're dealing with a slice.
 	if val.Kind() != reflect.Slice {

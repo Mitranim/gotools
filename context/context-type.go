@@ -54,6 +54,7 @@ func (this *ContextInstance) End() Context {
 // http.ResponseWriter associated with the current request.
 func (this *ContextInstance) Render(path string) {
 	bytes, err := render(this, path, this.Data())
+	log(this, err)
 	this.Code(ErrorCode(err))
 	this.RW().Write(bytes)
 }
@@ -62,6 +63,7 @@ func (this *ContextInstance) Render(path string) {
 
 // Sets the status code corresponding to the error and sends its message.
 func (this *ContextInstance) SendError(err error) {
+	log(this, err)
 	this.Code(ErrorCode(err))
 	this.Send(err.Error())
 }
@@ -75,6 +77,7 @@ func (this *ContextInstance) Must(err error) {
 	if err == nil {
 		return
 	}
+	log(this, err)
 	// Error -> render appropriate page, then panic.
 	this.Render(codePath(this, ErrorCode(err)))
 	Panic()
@@ -87,7 +90,7 @@ func (this *ContextInstance) Ought(err error) {
 	if err == nil {
 		return
 	}
-
+	log(this, err)
 	// Error -> set status and write error message, then panic.
 	code := ErrorCode(err)
 	bytes := []byte(err.Error())
@@ -115,16 +118,12 @@ func (this *ContextInstance) SendAsJson(value interface{}) {
 	// Try to encode and fail with 500 if can't.
 	bytes, err := json.Marshal(value)
 	if err != nil {
+		log(this, err)
 		this.Code(500).End()
 		return
 	}
 
-	val := reflect.ValueOf(value)
-
-	// Dereference the pointer, if any.
-	for val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
+	val := refValue(value)
 
 	// If value is nil, json.Marshal writes null. If the value has a slice type,
 	// we want to write an empty array instead, and for structs and maps, we want
@@ -150,6 +149,7 @@ func (this *ContextInstance) SendAsJson(value interface{}) {
 func (this *ContextInstance) ParseAsJson(dst interface{}) {
 	decoder := json.NewDecoder(this.req.Body)
 	err := decoder.Decode(dst)
+	log(this, err)
 	if err != nil {
 		this.Code(400).End()
 	}

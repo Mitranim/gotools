@@ -25,12 +25,7 @@ func (this *stateInstance) Compute(value interface{}) {
 	}
 
 	// Continue to see if this is a slice of computers.
-	val := reflect.ValueOf(value)
-
-	// "Dereference" the pointer, if any.
-	for val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
+	val := refValue(value)
 
 	// Ignore non-slices.
 	if val.Kind() != reflect.Slice {

@@ -32,11 +32,7 @@ func (this *stateInstance) FindOne(req *http.Request, destination Record, params
 	}
 
 	// Prepare to read from the collection.
-	col := reflect.ValueOf(collection)
-	// Dereference pointer, if any.
-	for col.Kind() == reflect.Ptr {
-		col = col.Elem()
-	}
+	col := refValue(collection)
 	// Make sure at least one record was found.
 	if col.Len() == 0 {
 		return err404
@@ -97,7 +93,7 @@ func (this *stateInstance) Save(req *http.Request, record Record) error {
 	}
 
 	// Validate before saving.
-	if len(record.Validate()) != 0 {
+	if len(record.Validate(req)) != 0 {
 		return err422
 	}
 

@@ -60,7 +60,7 @@ func makeTemplateFuncs(state *stateInstance) template.FuncMap {
 
 		// Prints a background-image style with the given src.
 		"bgImg": func(src string) template.HTMLAttr {
-			return template.HTMLAttr(`style="background-image: url(/img/` + src + `)"`)
+			return template.HTMLAttr(`style="background-image: url(` + src + `)"`)
 		},
 
 		// Same as bgImg but without the /img prefix.

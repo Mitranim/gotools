@@ -17,6 +17,7 @@ const (
 	err403 = utils.Error("403 insufficient permissions")
 	err404 = utils.Error("404 not found")
 	err422 = utils.Error("422 unprocessable entry")
+	err500 = utils.Error("500 internal server error")
 )
 
 /********************************* Utilities *********************************/
@@ -50,12 +51,26 @@ func repeat(str string, count int) (result string) {
 
 // Prints expanded values to standard output. For development purposes.
 func prn(values ...interface{}) {
-	for _, value := range values {
-		if reflect.ValueOf(value).Kind() == reflect.String {
-			print(fmt.Sprintf("%v", value) + " ")
+	var result string
+	for i := 0; i < len(values); i++ {
+		if reflect.ValueOf(values[i]).Kind() == reflect.String {
+			result += fmt.Sprintf("%v", values[i])
 		} else {
-			print(fmt.Sprintf("%#v", value) + " ")
+			result += fmt.Sprintf("%#v", values[i])
+		}
+		if i < len(values)-1 {
+			result += " "
 		}
 	}
-	println()
+	fmt.Println(result)
+}
+
+// Returns a reflect.Value of the given value. If the value is a pointer,
+// returns a reflect.Value of what it references.
+func refValue(value interface{}) reflect.Value {
+	val := reflect.ValueOf(value)
+	for val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	return val
 }

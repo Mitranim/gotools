@@ -35,13 +35,9 @@ func CodePath(code int) string {
 	return itoa(code)
 }
 
-// print/println wrapper that automatically does fmt %v for each value. Only
-// for runtimes that support logging to stdout.
+// fmt.Println() alias for runtimes that support logging to stdout.
 func Log(values ...interface{}) {
-	for _, value := range values {
-		print(fmt.Sprintf("%v", value) + " ")
-	}
-	println()
+	println(fmt.Sprintln(values...))
 }
 
 /************************************ WR *************************************/
